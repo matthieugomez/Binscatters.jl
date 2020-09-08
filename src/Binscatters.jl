@@ -1,8 +1,7 @@
-module Binscatter
+module Binscatters
 
 using DataFrames
 using Statistics
-using StatsModels
 using FixedEffects
 using FixedEffectModels
 using FillArrays
@@ -112,11 +111,12 @@ function residualize(df::AbstractDataFrame, @nospecialize(f::FormulaTerm); weigh
 end
 
 
-function binscatter(df::GroupedDataFrame, f::FormulaTerm; weights::Union{Symbol, Nothing} = nothing, n = 20)
+function binscatter(df::AbstractDataFrame, f::FormulaTerm; weights::Union{Symbol, Nothing} = nothing, n = 20)
     df = residualize(df, f; weights = weights, n = n)
+    cols = names(df)
     df.x_cut = cut(df[end], n)
     df = groupby(df, :x_cut)
-    df = combine(df, response_names .=> mean∘skipmissing .=> response_names; keepkeys = false)
+    df = combine(df, cols .=> mean∘skipmissing .=> cols; keepkeys = false)
 end
 
 function binscatter(df::GroupedDataFrame, f::FormulaTerm; weights::Union{Symbol, Nothing} = nothing, n = 20)
