@@ -9,7 +9,7 @@ using FillArrays
 using Reexport
 @reexport using StatsModels
 
-function binscatter(df::AbstractDataFrame, f::FormulaTerm; weights::Union{Symbol, Nothing} = nothing, n = 20)
+function residualize(df::AbstractDataFrame, @nospecialize(f::FormulaTerm); weights::Union{Symbol, Nothing} = nothing, n = 20)
     if  (ConstantTerm(0) ∉ FixedEffectModels.eachterm(f.rhs)) & (ConstantTerm(1) ∉ FixedEffectModels.eachterm(f.rhs))
         f = FormulaTerm(f.lhs, tuple(ConstantTerm(1), FixedEffectModels.eachterm(f.rhs)...))
     end
@@ -108,9 +108,15 @@ function binscatter(df::AbstractDataFrame, f::FormulaTerm; weights::Union{Symbol
         j += 1
         df[!, Symbol(y)] = residuals[:, j]
     end
+    return df
+end
 
-    df.x_cut = cut(df[!, response_names[end]], n)
-    select!(combine(groupby(df, :x_cut), response_names .=> mean∘skipmissing .=> response_names), response_names)
+
+function binscatter(df::GroupedDataFrame, f::FormulaTerm; weights::Union{Symbol, Nothing} = nothing, n = 20)
+    df = residualize(df, f; weights = weights, n = n)
+    df.x_cut = cut(df[end], n)
+    df = groupby(df, :x_cut)
+    df = combine(df, response_names .=> mean∘skipmissing .=> response_names; keepkeys = false)
 end
 
 function binscatter(df::GroupedDataFrame, f::FormulaTerm; weights::Union{Symbol, Nothing} = nothing, n = 20)
@@ -118,4 +124,5 @@ function binscatter(df::GroupedDataFrame, f::FormulaTerm; weights::Union{Symbol,
 end
 
 export binscatter
+
 end
