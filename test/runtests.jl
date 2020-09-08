@@ -1,6 +1,6 @@
 
 using CSV, DataFrames,  Test, Binscatters
-df = DataFrame(CSV.File(joinpath(dirname(pathof(Binscatter)), "../dataset/Cigar.csv")))
+df = DataFrame(CSV.File(joinpath(dirname(pathof(Binscatters)), "../dataset/Cigar.csv")))
 df.id1 = df.State
 df.id2 = df.Year
 df.pid1 = categorical(df.id1)
@@ -15,6 +15,8 @@ df.w = df.Pop
 
 
 binscatter(df, @formula(y~x1))
+binscatter(df, @formula(y ~ x1 + fe(id1)))
 binscatter(df, @formula(y~x1), weights = :w)
 binscatter(df, @formula(y+x2~x1))
-binscatter(groupby(df, :id1), @formula(y+x2~x1))
+binscatter(df, @formula(y~x1+x2))
+binscatter(groupby(df, :id1), @formula(y~x1))

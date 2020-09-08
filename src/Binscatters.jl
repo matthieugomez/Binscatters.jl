@@ -6,15 +6,14 @@ using FixedEffects
 using FixedEffectModels
 using FillArrays
 using Reexport
-@reexport using StatsModels
 
-function residualize(df::AbstractDataFrame, @nospecialize(f::FormulaTerm); weights::Union{Symbol, Nothing} = nothing, n = 20)
+function residualize(df::AbstractDataFrame, @nospecialize(f::FormulaTerm); weights::Union{Symbol, Nothing} = nothing)
+
     if  (ConstantTerm(0) ∉ FixedEffectModels.eachterm(f.rhs)) & (ConstantTerm(1) ∉ FixedEffectModels.eachterm(f.rhs))
         f = FormulaTerm(f.lhs, tuple(ConstantTerm(1), FixedEffectModels.eachterm(f.rhs)...))
     end
     formula = f
     has_weights = weights != nothing
-
 
     # create a dataframe without missing values & negative weights
     all_vars = StatsModels.termvars(formula)
@@ -42,8 +41,8 @@ function residualize(df::AbstractDataFrame, @nospecialize(f::FormulaTerm); weigh
         if any(fe.interaction isa Ones for fe in fes)
             has_fe_intercept = true
         end
-        fes = FixedEffect[_subset(fe, esample) for fe in fes]
-        feM = AbstractFixedEffectSolver{double_precision ? Float64 : Float32}(fes, weights, Val{method})
+        fes = FixedEffect[FixedEffectModels._subset(fe, esample) for fe in fes]
+        feM = AbstractFixedEffectSolver{Float64}(fes, weights, Val{:cpu})
     end
 
     # Compute residualized Y
@@ -81,11 +80,7 @@ function residualize(df::AbstractDataFrame, @nospecialize(f::FormulaTerm); weigh
     m = mean(Y, dims = 1)
     if has_fes
         Y, b, c = solve_residuals!(Y, feM)
-        append!(iterations, b)
-        append!(convergeds, c)
         X, b, c = solve_residuals!(X, feM)
-        append!(iterations, b)
-        append!(convergeds, c)
     end
 
     Y .= Y .* sqrt.(weights)
@@ -110,9 +105,27 @@ function residualize(df::AbstractDataFrame, @nospecialize(f::FormulaTerm); weigh
     return df
 end
 
+"""
+Return a DataFrame that residualize and collapse 
+
+### Arguments
+* `df`: a DataFrame
+* `FormulaTerm`: A formula created using [`@formula`](@ref)
+* `weights`: A symbol for weights
+* `n`: Number of groups
+
+### Examples
+```julia
+using Binscatters
+df = dataset("plm", "Cigar")
+binscatter(df, @formula(Sales ~ NDI + fe(State))
+binscatter(df, @formula(Sales ~ NDI + Price + fe(State))
+binscatter(df, @formula(Sales + Price ~ NDI + fe(State))
+```
+"""
 
 function binscatter(df::AbstractDataFrame, f::FormulaTerm; weights::Union{Symbol, Nothing} = nothing, n = 20)
-    df = residualize(df, f; weights = weights, n = n)
+    df = residualize(df, f; weights = weights)
     cols = names(df)
     df.x_cut = cut(df[end], n)
     df = groupby(df, :x_cut)
@@ -123,6 +136,6 @@ function binscatter(df::GroupedDataFrame, f::FormulaTerm; weights::Union{Symbol,
     combine(d -> binscatter(d, f; weights = weights, n = n), df; ungroup = false)
 end
 
-export binscatter
+export binscatter, fe, @formula
 
 end
