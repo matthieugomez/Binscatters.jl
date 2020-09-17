@@ -28,18 +28,19 @@ function binscatter(df::AbstractDataFrame, @nospecialize(f::FormulaTerm); weight
     f = translate(f)
     df = partial_out(df, f; weights = weights, align = false, add_mean = true)[1]
     cols = names(df)
-    df.x_cut = cut(df[!, end], n; allowempty = true)
-    df = groupby(df, :x_cut)
+    df.__cut = cut(df[!, end], n; allowempty = true)
+    df = groupby(df, :__cut)
     combine(df, cols .=> mean .=> cols; keepkeys = false)
 end
 
 function binscatter(df::GroupedDataFrame, @nospecialize(f::FormulaTerm); weights::Union{Symbol, Nothing} = nothing, n = 20, kwargs...)
     df = combine(d -> binscatter(d, f; weights = weights, n = n), df)
-    df = stack(df, names(df, 2:size(df, 2)))
-    df.variable = names(df, 1) .* "=" .* string.(df[1]) .* df.variable 
-    select!(df, :variable, :value)
-    transform!(groupby(df, :variable), :value => (x -> 1:length(x)) => :length)
-    unstack(df, :variable, :value)
+    df = stack(df, names(df, 2:size(df, 2)); 
+        variable_name = :__variable, value_name = :__value, variable_eltype = String)
+    df.__variable = names(df, 1) .* "=" .* string.(df[!, 1]) .* df.__variable 
+    select!(df, :__variable, :__value)
+    transform!(groupby(df, :__variable), :__value => (x -> 1:length(x)) => :length)
+    unstack(df, :__variable, :__value)
 end
 
 function translate(@nospecialize(formula::FormulaTerm))
