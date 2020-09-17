@@ -24,16 +24,15 @@ binscatter(df, @formula(Sales + Price ~ NDI + fe(State)))
 ```
 """
 
-function binscatter(df::AbstractDataFrame, @nospecialize(f::FormulaTerm); weights::Union{Symbol, Nothing} = nothing, n = 20, kwargs...)
-    f = translate(f)
-    df = partial_out(df, f; weights = weights, align = false, add_mean = true)[1]
+function binscatter(df::AbstractDataFrame, @nospecialize(f::FormulaTerm); weights::Union{Symbol, Nothing} = nothing, n = 20)
+    df = partial_out(df, translate(f); weights = weights, align = false, add_mean = true)[1]
     cols = names(df)
     df.__cut = cut(df[!, end], n; allowempty = true)
     df = groupby(df, :__cut)
     combine(df, cols .=> mean .=> cols; keepkeys = false)
 end
 
-function binscatter(df::GroupedDataFrame, @nospecialize(f::FormulaTerm); weights::Union{Symbol, Nothing} = nothing, n = 20, kwargs...)
+function binscatter(df::GroupedDataFrame, @nospecialize(f::FormulaTerm); weights::Union{Symbol, Nothing} = nothing, n = 20)
     df = combine(d -> binscatter(d, f; weights = weights, n = n), df)
     df = stack(df, names(df, 2:size(df, 2)); 
         variable_name = :__variable, value_name = :__value, variable_eltype = String)
