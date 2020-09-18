@@ -1,4 +1,4 @@
-module Binscatter
+module Binscatters
 
 using DataFrames
 using Statistics
@@ -7,15 +7,15 @@ using RecipesBase
 using CategoricalArrays
 
 """
-    binscatter(df::Union{DataFrame, GroupedDataFrame}, f::FormulaTerm; 
-                n::Integer = 20, weights = nothing, kwargs...)
+    binscatter(df::Union{DataFrame, GroupedDataFrame}, f::FormulaTerm, ngroups::Integer; 
+                weights = nothing, kwargs...)
 
 Generate a binned scatterplot
 
 ### Arguments
 * `df`: a DataFrame or a GroupedDataFrame
 * `f`: A formula created using [`@formula`](@ref). The variable(s) in the left-hand side are on the y-axis. The first variable in the right-hand side is on the x-axis. Use other terms for controls.
-* `n`: Number of bins
+* `ngroups`: Number of bins
 * `weights`: A symbol for weights
 * `kwargs...`: Additional attributes from [`Plots`](@ref)
 
@@ -42,16 +42,16 @@ binscatter(groupby(df, :Post70), @formula(Sales ~ Price + fe(Year)))
 """
 binscatter
 
-function bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm); weights::Union{Symbol, Nothing} = nothing, n = 20)
+function bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm), ngroups::Integer = 20; weights::Union{Symbol, Nothing} = nothing)
     df = partial_out(df, _shift(f); weights = weights, align = false, add_mean = true)[1]
     cols = names(df)
-    df.__cut = cut(df[!, end], n; allowempty = true)
+    df.__cut = cut(df[!, end], ngroups; allowempty = true)
     df = groupby(df, :__cut)
     combine(df, cols .=> mean .=> cols; keepkeys = false)
 end
 
-function bin(df::GroupedDataFrame, @nospecialize(f::FormulaTerm); weights::Union{Symbol, Nothing} = nothing, n = 20)
-    combine(d -> bin(d, f; weights = weights, n = n), df; ungroup = false)
+function bin(df::GroupedDataFrame, @nospecialize(f::FormulaTerm), ngroups::Integer = 20; weights::Union{Symbol, Nothing} = nothing, n = 20)
+    combine(d -> bin(d, f; weights = weights, ngroups = ngroups), df; ungroup = false)
 end
 
 
@@ -69,9 +69,13 @@ function _shift(@nospecialize(formula::FormulaTerm))
 end
 
 #user recipe
-@userplot Binscatter
-@recipe function f(bs::Binscatter; weights = nothing, n = 20)
-    df = bin(bs.args...; weights = weights, n = n)
+mutable struct Binscatter
+    args
+end
+binscatter(args...;kw...) = plot(Binscatter(args); kw....)
+binscatter!(args...;kw...) = plot!(Binscatter(args); kw....)
+@recipe function f(bs::BinScatter; weights = nothing)
+    df = bin(bs.args...; weights = weights)
     if df isa DataFrame
         cols = names(df)
         N = length(cols)
@@ -93,6 +97,6 @@ end
     end
 end
 
-export bin, binscatter, fe, @formula
+export bin, binscatter, binscatter!, fe, @formula
 
 end

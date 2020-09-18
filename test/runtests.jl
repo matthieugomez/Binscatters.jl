@@ -1,5 +1,5 @@
 
-using CSV, DataFrames, Test, Plots, Binscatter
+using CSV, DataFrames, Test, Plots, Binscatters
 df = DataFrame(CSV.File(joinpath(dirname(pathof(Binscatter)), "../dataset/Cigar.csv")))
 df.id1 = df.State
 df.y = df.Sales
