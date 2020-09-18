@@ -1,4 +1,4 @@
-module Binscatters
+module Binscatter
 
 using DataFrames
 using Statistics
@@ -71,7 +71,6 @@ end
 #user recipe
 @userplot Binscatter
 @recipe function f(bs::Binscatter; weights = nothing, n = 20)
-
     df = bin(bs.args...; weights = weights, n = n)
     if df isa DataFrame
         cols = names(df)
@@ -93,7 +92,6 @@ end
         end
     end
 end
-
 
 export bin, binscatter, fe, @formula
 
