@@ -12,10 +12,11 @@ df = dataset("plm", "Cigar")
 binscatter(df, @formula(Sales ~ Price))
 ```
 
-- Residualize with respect to additional controls and high dimensional fixed effects using more complicates formulas:
-```julia
-dependent y ~ x +  controls +  fe(fixedeffect)
-```
+- Use a formula to specify one y-variable(s), one x-variable, and, eventually, controls and high-dimensional fixedeffects:
+	```julia
+	@formula(y ~ x +  controls +  fe(fixedeffect))
+	```
 - Binscatter within groups by passing a `GroupedDataFrame` as a first argument.
 - Use the usual `Plots` attributes to change labels colors, etc..
 
+For more documention, type `?binscatter` in the REPL.
