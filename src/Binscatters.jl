@@ -8,7 +8,8 @@ using RecipesBase
 
 """
     binscatter(df::Union{DataFrame, GroupedDataFrame}, f::FormulaTerm, ngroups::Integer; 
-                weights::Union{Symbol, Nothing} = nothing, kwargs...)
+                weights::Union{Symbol, Nothing} = nothing, kind::Union{Symbol, Nothing} = nothing,
+                kwargs...)
 
 Outputs a binned scatterplot
 
@@ -19,6 +20,7 @@ Outputs a binned scatterplot
 
 ### Keyword arguments
 * `weights`: A symbol for weights
+* `kind`: A symbol for the type of line. `:connect` connects the bins, `:lfit` plots regression line
 * `kwargs...`: Additional attributes from [`Plots`](@ref)
 
 ### Examples
@@ -79,28 +81,74 @@ end
 binscatter(args...; kwargs...) = RecipesBase.plot(Binscatter(args); kwargs...)
 binscatter!(args...; kwargs...) = RecipesBase.plot!(Binscatter(args); kwargs...)
 
-@recipe function f(bs::Binscatter; weights = nothing)
+@recipe function f(bs::Binscatter; weights = nothing, kind = nothing)
     df = bin(bs.args...; weights = weights)
     if df isa DataFrame
         cols = names(df)
         N = length(cols)
-        seriestype --> :scatter
-        xguide := cols[end]
-        label := reshape(cols[1:(end-1)], 1, N-1)
-        df[!, end], Matrix(df[!, 1:(end-1)])
+        x = df[!, end]
+        Y = Matrix(df[!, 1:(end-1)])
+        @series begin
+            if kind == :connect
+                markershape --> :auto
+            else
+                seriestype --> :scatter
+            end
+            markerstrokealpha --> 0.0
+            xguide --> cols[end]
+            label --> reshape(cols[1:(end-1)], 1, N-1)
+            x, Y
+        end
+        if kind == :lfit
+            if size(Y, 2) > 1
+                linecolor := :black
+            end
+            X = hcat(ones(length(x)), x)
+            β = (X'X) \ (X'Y)
+            @series begin
+                xguide --> cols[end]
+                label := nothing
+                x, X * β
+            end
+        end
     else
         for (k, out) in pairs(df)
+            cols = string.(valuecols(df))
+            N = length(cols)
+            x = out[!, end]
+            Y = Matrix(out[!, (end-(N-1)):(end-1)])
             @series begin
+                if kind == :connect
+                    markershape --> :auto
+                else
+                    seriestype --> :scatter
+                end
+                markerstrokealpha --> 0.0
+                xguide --> cols[end]
+                label := reshape(cols[1:(end-1)], 1, N-1) .* " " .* string(NamedTuple(k))
+                x, Y
+            end
+        end
+        # to get right color for first one, needs to do that
+        if kind == :lfit
+            for (k, out) in pairs(df)
                 cols = string.(valuecols(df))
                 N = length(cols)
-                seriestype --> :scatter
-                xguide := cols[end]
-                label := reshape(cols[1:(end-1)], 1, N-1) .* " " .* string(NamedTuple(k))
-                out[!, end], Matrix(out[!, (end-N):(end-1)])
+                x = out[!, end]
+                Y = Matrix(out[!, (end-(N-1)):(end-1)])
+                X = hcat(ones(length(x)), x)
+                β = (X'X) \ (X'Y)
+                @series begin
+                    linecolor := :black
+                    xguide --> cols[end]
+                    label := nothing
+                    x, X * β
+                end
             end
         end
     end
 end
+
 
 export bin, binscatter, binscatter!, fe, @formula
 
