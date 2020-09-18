@@ -10,35 +10,36 @@ using RecipesBase
     binscatter(df::Union{DataFrame, GroupedDataFrame}, f::FormulaTerm, ngroups::Integer; 
                 weights::Union{Symbol, Nothing} = nothing, kwargs...)
 
-Generate a binned scatterplot
+Outputs a binned scatterplot
 
 ### Arguments
 * `df`: a DataFrame or a GroupedDataFrame
-* `f`: A formula created using [`@formula`](@ref). The variable(s) in the left-hand side are on the y-axis. The first variable in the right-hand side is on the x-axis. Use other terms for controls.
+* `f`: A formula created using [`@formula`](@ref). The variable(s) in the left-hand side are on the y-axis. The first variable in the right-hand side is on the x-axis. The other variables are controls to residualize for. Use high-dimensional fixed effects with `fe`
 * `ngroups`: Number of bins
+
+### Keyword arguments
 * `weights`: A symbol for weights
 * `kwargs...`: Additional attributes from [`Plots`](@ref)
 
 ### Examples
 ```julia
 using DataFrames, Binscatters, RDatasets, Plots
-pgfplotsx()
 df = dataset("plm", "Cigar")
 binscatter(df, @formula(Sales ~ Price))
 
-# Change number of groups
+# Change the number of bins
 binscatter(df, @formula(Sales ~ Price), 10)
 
-# Use controls
+# Residualize the y and x variables w.r.t. controls
 binscatter(df, @formula(Sales ~ Price + NDI))
-binscatter(df, @formula(Sales ~ Price + NDI + fe(Year)))
+binscatter(df, @formula(Sales ~ Price + fe(Year)))
 
-# Plot multiple variables
+# Plot multiple variables on the y-axis
 binscatter(df, @formula(Sales + NDI ~ Price))
 
 # binscatter by groups
 df.Post70 = df.Year .>= 70
-binscatter(groupby(df, :Post70), @formula(Sales ~ Price + fe(Year)))
+binscatter(groupby(df, :Post70), @formula(Sales ~ Price))
 ```
 """
 binscatter
