@@ -10,8 +10,6 @@ DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 FixedEffectModels = "9d5cd8c9-2029-5cab-9928-427838db53e3"
 RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
-StatsModels = "3eaba693-59b7-5ba5-a881-562e759f1c8d"
-
 
 [compat]
 CategoricalArrays = "0.8"
