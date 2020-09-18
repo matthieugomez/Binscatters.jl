@@ -4,7 +4,7 @@ This package implements the Stata command [`binscatter`](https://github.com/mich
 The package is registered in the [`General`](https://github.com/JuliaRegistries/General) registry and so can be installed at the REPL with `] add Binscatters`.
 
 ## Syntax
-`binscatter` is implemented as recipe for [`Plots`](https://github.com/JuliaPlots/Plots.jl). 
+`binscatter` is implemented as a recipe for [`Plots`](https://github.com/JuliaPlots/Plots.jl). 
 
 ```julia
 using DataFrames, RDatasets, Binscatters, Plots
@@ -12,7 +12,7 @@ df = dataset("plm", "Cigar")
 binscatter(df, @formula(Sales ~ Price))
 ```
 
-- Use a formula to specify one y-variable(s), one x-variable, and, eventually, controls and high-dimensional fixedeffects:
+- Use a formula to specify a y-variable and a x-variable (and, eventually, controls and high-dimensional fixedeffects):
 	```julia
 	@formula(y ~ x +  controls +  fe(fixedeffect))
 	```
