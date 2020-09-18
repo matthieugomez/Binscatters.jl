@@ -89,25 +89,31 @@ binscatter!(args...; kwargs...) = RecipesBase.plot!(Binscatter(args); kwargs...)
         x = df[!, end]
         Y = Matrix(df[!, 1:(end-1)])
         @series begin
-            if kind == :connect
-                markershape --> :auto
-            else
+            markershape --> :circle
+            if kind ∈ (nothing, :lfit)
                 seriestype --> :scatter
             end
             markerstrokealpha --> 0.0
             xguide --> cols[end]
-            label --> reshape(cols[1:(end-1)], 1, N-1)
+            if size(Y, 2) == 1
+                yguide --> cols[1]
+                label --> false
+            else
+                label --> reshape(cols[1:(end-1)], 1, N-1)
+            end
             x, Y
         end
         if kind == :lfit
-            if size(Y, 2) > 1
+            if size(Y, 2) == 1
+                yguide --> cols[1]
+            else
                 linecolor := :black
             end
             X = hcat(ones(length(x)), x)
             β = (X'X) \ (X'Y)
             @series begin
                 xguide --> cols[end]
-                label := nothing
+                label := false
                 x, X * β
             end
         end
@@ -118,14 +124,18 @@ binscatter!(args...; kwargs...) = RecipesBase.plot!(Binscatter(args); kwargs...)
             x = out[!, end]
             Y = Matrix(out[!, (end-(N-1)):(end-1)])
             @series begin
-                if kind == :connect
-                    markershape --> :auto
-                else
+                markershape --> :circle
+                if kind ∈ (nothing, :lfit)
                     seriestype --> :scatter
                 end
                 markerstrokealpha --> 0.0
                 xguide --> cols[end]
-                label --> reshape(cols[1:(end-1)], 1, N-1) .* " " .* string(NamedTuple(k))
+                if size(Y, 2) == 1
+                    yguide --> cols[1]
+                    label --> string(NamedTuple(k))
+                else
+                    label --> reshape(cols[1:(end-1)], 1, N-1) .* " " .* string(NamedTuple(k))
+                end
                 x, Y
             end
         end
@@ -139,6 +149,9 @@ binscatter!(args...; kwargs...) = RecipesBase.plot!(Binscatter(args); kwargs...)
                 X = hcat(ones(length(x)), x)
                 β = (X'X) \ (X'Y)
                 @series begin
+                    if size(Y, 2) == 1
+                         yguide --> cols[1]
+                    end
                     linecolor := :black
                     xguide --> cols[end]
                     label := nothing
