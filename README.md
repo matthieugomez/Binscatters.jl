@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.com/matthieugomez/Binscatters.jl.svg?branch=master)](https://travis-ci.com/matthieugomez/Binscatters.jl)
 
 
-This package implements a [`Plots`](https://github.com/JuliaPlots/Plots.jl) recipe to generate binned scatterplots. This tool implements the Stata command [`binscatter`](https://github.com/michaelstepner/binscatter) in Julia.
+This package defines a [`Plots`](https://github.com/JuliaPlots/Plots.jl) recipe to generate binned scatterplots. This implements the Stata command [`binscatter`](https://github.com/michaelstepner/binscatter) in Julia.
 
 
 ## Installation
@@ -9,18 +9,8 @@ The package is registered in the [`General`](https://github.com/JuliaRegistries/
 
 ## Syntax
 ```julia
-using DataFrames, RDatasets, Plots, Binscatter
+using DataFrames, RDatasets, Plots, Binscatters
 df = dataset("plm", "Cigar")
 binscatter(df, @formula(Sales ~ Price))
 ```
-- The first argument is a `DataFrame` or a `GroupedDataFrame`.
-- The second argument is a `FormulaTerm`, of the form
-	```julia
-	@formula(y ~ x + controls +  fe(fixedeffect))
-	```
-	See the formula syntax from  [`FixedEffectModels`](https://github.com/FixedEffects/FixedEffectModels.jl).
-- The keyword argument `ngroups` corresponds to the number of bins
-- The keyword arugment `weights` adds weights
-- Additional keyword argument correspond to `Plots` attributes
-
 For more documention, type `?binscatter` in the REPL.

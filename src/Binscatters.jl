@@ -15,13 +15,13 @@ Outputs a binned scatterplot
 
 ### Arguments
 * `df`: a DataFrame or a GroupedDataFrame
-* `f`: A formula created using [`@formula`](@ref). The variable(s) in the left-hand side are on the y-axis. The first variable in the right-hand side is on the x-axis. The other variables are controls to residualize for. Use high-dimensional fixed effects with `fe`
+* `f`: A formula created using [`@formula`](@ref). The variable(s) in the left-hand side are on the y-axis. The first variable in the right-hand side is on the x-axis. The other variables are controls.
 * `ngroups`: Number of bins
 
 ### Keyword arguments
 * `weights`: A symbol for weights
-* `kind`: A symbol for the type of line. `:connect` connects the bins, `:lfit` plots regression line
-* `kwargs...`: Additional attributes from [`Plots`](@ref)
+* `kind`: The type of line. `:connect` connects the bins, `:lfit` plots a regression line, `nothing` does not plot lines 
+* `kwargs...`: Additional attributes for [`Plots`](@ref)
 
 ### Examples
 ```julia
