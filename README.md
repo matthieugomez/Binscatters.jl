@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.com/matthieugomez/Binscatters.jl.svg?branch=master)](https://travis-ci.com/matthieugomez/Binscatters.jl)
+
+
 This package implements the Stata command [`binscatter`](https://github.com/michaelstepner/binscatter) in Julia. 
 
 ## Installation

@@ -1,5 +1,5 @@
 
-using CSV, DataFrames,  Test, Binscatters
+using CSV, DataFrames, Test, Plots, Binscatters
 df = DataFrame(CSV.File(joinpath(dirname(pathof(Binscatters)), "../dataset/Cigar.csv")))
 df.id1 = df.State
 df.y = df.Sales
@@ -17,3 +17,11 @@ bin(df, @formula(y~x1), weights = :w)
 bin(df, @formula(y+x2~x1))
 bin(df, @formula(y~x1+x2))
 bin(groupby(df, :id1), @formula(y~x1))
+
+
+binscatter(df, @formula(y ~ x1 + fe(id1)))
+binscatter(df, @formula(y~x1), weights = :w)
+binscatter(df, @formula(y+x2~x1))
+binscatter(df, @formula(y~x1+x2))
+binscatter(groupby(df, :id1), @formula(y~x1))
+binscatter(groupby(df, :id1), @formula(y+x2~x1))

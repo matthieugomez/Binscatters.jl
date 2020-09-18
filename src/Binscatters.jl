@@ -7,11 +7,11 @@ using RecipesBase
 using CategoricalArrays
 
 """
-Return a plot after (i) residualizeing the left hand side and the first variable of the right hand side w.r.t all other variables in the formula (ii) averaging variables w.r.t bins of the first variable of the right-hand-side
+Return a plot after (i) residualizing the left hand side and the first variable of the right hand side w.r.t all other variables in the formula (ii) averaging variables w.r.t bins of the first variable of the right-hand-side
 
 ### Arguments
 * `df`: a DataFrame or a GroupedDataFrame
-* `FormulaTerm`: A formula created using [`@formula`](@ref). The syntax is `@formula(y1 + y2 ~ x + control1 + control2)` 
+* `FormulaTerm`: A formula created using [`@formula`](@ref). The syntax is `@formula(y ~ x + control)` 
 * `weights`: A symbol for weights
 * `n`: Number of groups
 * kwargs...: Plot attributes from Plots
@@ -39,7 +39,20 @@ binscatter(groupby(df, [:Year2, :State2]), @formula(Sales ~ Price + fe(Year)))
 """
 binscatter
 
-function translate(@nospecialize(formula::FormulaTerm))
+function bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm); weights::Union{Symbol, Nothing} = nothing, n = 20)
+    df = partial_out(df, _shift(f); weights = weights, align = false, add_mean = true)[1]
+    cols = names(df)
+    df.__cut = cut(df[!, end], n; allowempty = true)
+    df = groupby(df, :__cut)
+    combine(df, cols .=> mean .=> cols; keepkeys = false)
+end
+
+function bin(df::GroupedDataFrame, @nospecialize(f::FormulaTerm); weights::Union{Symbol, Nothing} = nothing, n = 20, ungroup = true)
+    combine(d -> bin(d, f; weights = weights, n = n), df; ungroup = ungroup)
+end
+
+
+function _shift(@nospecialize(formula::FormulaTerm))
     lhs = formula.lhs
     rhs = formula.rhs
     if !(lhs isa Tuple)
@@ -50,18 +63,6 @@ function translate(@nospecialize(formula::FormulaTerm))
     end
     i = findfirst(x -> x isa Term, rhs)
     FormulaTerm(tuple(lhs..., rhs[i]), Tuple(term for term in rhs if term != rhs[i]))
-end
-
-function bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm); weights::Union{Symbol, Nothing} = nothing, n = 20)
-    df = partial_out(df, translate(f); weights = weights, align = false, add_mean = true)[1]
-    cols = names(df)
-    df.__cut = cut(df[!, end], n; allowempty = true)
-    df = groupby(df, :__cut)
-    combine(df, cols .=> mean .=> cols; keepkeys = false)
-end
-
-function bin(df::GroupedDataFrame, @nospecialize(f::FormulaTerm); weights::Union{Symbol, Nothing} = nothing, n = 20, ungroup = true)
-    combine(d -> bin(d, f; weights = weights, n = n), df; ungroup = ungroup)
 end
 
 #user recipe
@@ -78,15 +79,14 @@ end
         label := reshape(cols[1:(end-1)], 1, N-1)
         df[!, end], collect(eachcol(df[!, 1:(N-1)]))
     else
-        gcols = groupcols(df)
         df = bin(df, f; weights = weights, n = n, ungroup = false)
         for (k, out) in pairs(df)
             @series begin
-                cols = setdiff(names(out), string.(gcols))
+                cols = valuecols(df)
                 xguide := cols[end]
                 N = length(cols)
-                label := reshape(cols[1:(end-1)], 1, N-1)  .* " " .* string(NamedTuple(k))
-                out[!, end], collect(eachcol(out[!, (length(gcols)+1):(end-1)]))
+                label := reshape(string.(cols[1:(end-1)]), 1, N-1)  .* " " .* string(NamedTuple(k))
+                out[!, end], collect(eachcol(out[!, (end-N):(end-1)]))
             end
         end
     end
