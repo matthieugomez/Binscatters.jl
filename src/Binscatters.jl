@@ -1,14 +1,14 @@
 module Binscatters
 
-using DataFrames
 using Statistics
+using CategoricalArrays
+using DataFrames
 using FixedEffectModels
 using RecipesBase
-using CategoricalArrays
 
 """
     binscatter(df::Union{DataFrame, GroupedDataFrame}, f::FormulaTerm, ngroups::Integer; 
-                weights = nothing, kwargs...)
+                weights::Union{Symbol, Nothing} = nothing, kwargs...)
 
 Generate a binned scatterplot
 
@@ -25,8 +25,9 @@ using DataFrames, Binscatters, RDatasets, Plots
 pgfplotsx()
 df = dataset("plm", "Cigar")
 binscatter(df, @formula(Sales ~ Price))
-binscatter(df, @formula(Sales ~ Price), n = 10)
-binscatter(df, @formula(Sales ~ Price), n = 10, color = :black)
+
+# Change number of groups
+binscatter(df, @formula(Sales ~ Price), 10)
 
 # Use controls
 binscatter(df, @formula(Sales ~ Price + NDI))
@@ -42,7 +43,8 @@ binscatter(groupby(df, :Post70), @formula(Sales ~ Price + fe(Year)))
 """
 binscatter
 
-function bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm), ngroups::Integer = 20; weights::Union{Symbol, Nothing} = nothing)
+function bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm), ngroups::Integer = 20; 
+            weights::Union{Symbol, Nothing} = nothing)
     df = partial_out(df, _shift(f); weights = weights, align = false, add_mean = true)[1]
     cols = names(df)
     df.__cut = cut(df[!, end], ngroups; allowempty = true)
@@ -50,8 +52,9 @@ function bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm), ngroups::Inte
     combine(df, cols .=> mean .=> cols; keepkeys = false)
 end
 
-function bin(df::GroupedDataFrame, @nospecialize(f::FormulaTerm), ngroups::Integer = 20; weights::Union{Symbol, Nothing} = nothing, n = 20)
-    combine(d -> bin(d, f; weights = weights, ngroups = ngroups), df; ungroup = false)
+function bin(df::GroupedDataFrame, @nospecialize(f::FormulaTerm), ngroups::Integer = 20; 
+            weights::Union{Symbol, Nothing} = nothing)
+    combine(d -> bin(d, f, ngroups; weights = weights), df; ungroup = false)
 end
 
 
@@ -68,13 +71,14 @@ function _shift(@nospecialize(formula::FormulaTerm))
     FormulaTerm(tuple(lhs..., rhs[i]), Tuple(term for term in rhs if term != rhs[i]))
 end
 
-#user recipe
+#user recipe: same thing as @userplot Binscatter
 mutable struct Binscatter
     args
 end
-binscatter(args...;kw...) = plot(Binscatter(args); kw....)
-binscatter!(args...;kw...) = plot!(Binscatter(args); kw....)
-@recipe function f(bs::BinScatter; weights = nothing)
+binscatter(args...; kwargs...) = RecipesBase.plot(Binscatter(args); kwargs...)
+binscatter!(args...; kwargs...) = RecipesBase.plot!(Binscatter(args); kwargs...)
+
+@recipe function f(bs::Binscatter; weights = nothing)
     df = bin(bs.args...; weights = weights)
     if df isa DataFrame
         cols = names(df)
@@ -86,11 +90,11 @@ binscatter!(args...;kw...) = plot!(Binscatter(args); kw....)
     else
         for (k, out) in pairs(df)
             @series begin
-                cols = valuecols(df)
+                cols = string.(valuecols(df))
                 N = length(cols)
                 seriestype --> :scatter
                 xguide := cols[end]
-                label := reshape(string.(cols[1:(end-1)]), 1, N-1) .* " " .* string(NamedTuple(k))
+                label := reshape(cols[1:(end-1)], 1, N-1) .* " " .* string(NamedTuple(k))
                 out[!, end], Matrix(out[!, (end-N):(end-1)])
             end
         end
