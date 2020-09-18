@@ -25,12 +25,11 @@ binscatter(df, @formula(Sales ~ Price))
 binscatter(df, @formula(Sales ~ Price), n = 10)
 binscatter(df, @formula(Sales ~ Price), n = 10, color = :black)
 
-# Residualize with respect to variables
+
+# More complicated formulas
 binscatter(df, @formula(Sales ~ Price + NDI))
 binscatter(df, @formula(Sales ~ Price + NDI + fe(Year)))
-
-# binscatter multiple variables
-binscatter(df, @formula(Sales + Price ~ NDI))
+binscatter(df, @formula(Sales + NDI ~ Price))
 
 # binscatter by groups
 df.Year2 = df.Year .>= 70
