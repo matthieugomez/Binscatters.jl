@@ -47,7 +47,7 @@ function bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm); weights::Unio
     combine(df, cols .=> mean .=> cols; keepkeys = false)
 end
 
-function bin(df::GroupedDataFrame, @nospecialize(f::FormulaTerm); weights::Union{Symbol, Nothing} = nothing, n = 20, ungroup = true)
+function bin(df::GroupedDataFrame, @nospecialize(f::FormulaTerm); weights::Union{Symbol, Nothing} = nothing, n = 20)
     combine(d -> bin(d, f; weights = weights, n = n), df; ungroup = ungroup)
 end
 
@@ -70,23 +70,23 @@ end
 @recipe function f(bs::Binscatter; weights = nothing, n = 20)
     df = bs.args[1]
     f = bs.args[2]
-    seriestype --> :scatter
+    df = bin(df, f; weights = weights, n = n)
     if df isa DataFrame
-        df = bin(df, f; weights = weights, n = n)
         cols = names(df)
-        xguide := cols[end]
         N = length(cols)
+        seriestype --> :scatter
+        xguide := cols[end]
         label := reshape(cols[1:(end-1)], 1, N-1)
-        df[!, end], collect(eachcol(df[!, 1:(N-1)]))
+        df[!, end], Matrix(df[!, 1:(end-1)])
     else
-        df = bin(df, f; weights = weights, n = n, ungroup = false)
         for (k, out) in pairs(df)
             @series begin
                 cols = valuecols(df)
-                xguide := cols[end]
                 N = length(cols)
-                label := reshape(string.(cols[1:(end-1)]), 1, N-1)  .* " " .* string(NamedTuple(k))
-                out[!, end], collect(eachcol(out[!, (end-N):(end-1)]))
+                seriestype --> :scatter
+                xguide := cols[end]
+                label := reshape(string.(cols[1:(end-1)]), 1, N-1) .* " " .* string(NamedTuple(k))
+                out[!, end], Matrix(out[!, (end-N):(end-1)])
             end
         end
     end
