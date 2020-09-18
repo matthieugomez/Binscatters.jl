@@ -1,13 +1,13 @@
 [![Build Status](https://travis-ci.com/matthieugomez/Binscatters.jl.svg?branch=master)](https://travis-ci.com/matthieugomez/Binscatters.jl)
 
 
-This package implements a [`Plots`](https://github.com/JuliaPlots/Plots.jl) recipe to generate binned scatterplots. It implements the Stata command [`binscatter`](https://github.com/michaelstepner/binscatter) in Julia.
+This package implements a [`Plots`](https://github.com/JuliaPlots/Plots.jl) recipe to generate binned scatterplots, similarly to the Stata command [`binscatter`](https://github.com/michaelstepner/binscatter).
+
 
 ## Installation
 The package is registered in the [`General`](https://github.com/JuliaRegistries/General) registry and so can be installed at the REPL with `] add Binscatters`.
 
 ## Syntax
-
 ```julia
 using DataFrames, RDatasets, Binscatters, Plots
 df = dataset("plm", "Cigar")
