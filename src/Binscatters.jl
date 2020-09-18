@@ -25,7 +25,6 @@ binscatter(df, @formula(Sales ~ Price))
 binscatter(df, @formula(Sales ~ Price), n = 10)
 binscatter(df, @formula(Sales ~ Price), n = 10, color = :black)
 
-
 # More complicated formulas
 binscatter(df, @formula(Sales ~ Price + NDI))
 binscatter(df, @formula(Sales ~ Price + NDI + fe(Year)))
@@ -94,6 +93,6 @@ end
 end
 
 
-export binscatter, fe, @formula
+export bin, binscatter, fe, @formula
 
 end
