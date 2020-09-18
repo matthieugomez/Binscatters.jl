@@ -125,7 +125,7 @@ binscatter!(args...; kwargs...) = RecipesBase.plot!(Binscatter(args); kwargs...)
                 end
                 markerstrokealpha --> 0.0
                 xguide --> cols[end]
-                label := reshape(cols[1:(end-1)], 1, N-1) .* " " .* string(NamedTuple(k))
+                label --> reshape(cols[1:(end-1)], 1, N-1) .* " " .* string(NamedTuple(k))
                 x, Y
             end
         end
