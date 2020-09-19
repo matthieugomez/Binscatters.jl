@@ -7,7 +7,7 @@ using FixedEffectModels
 using RecipesBase
 
 """
-    binscatter(df::Union{DataFrame, GroupedDataFrame}, f::FormulaTerm, ngroups::Integer; 
+    binscatter(df::Union{DataFrame, GroupedDataFrame}, f::FormulaTerm, nbins::Integer; 
                 weights::Union{Symbol, Nothing} = nothing, seriestype::Symbol = :scatter,
                 kwargs...)
 
@@ -16,12 +16,12 @@ Outputs a binned scatterplot
 ### Arguments
 * `df`: a DataFrame or a GroupedDataFrame
 * `f`: A formula created using [`@formula`](@ref). The variable(s) in the left-hand side are on the y-axis. The first variable in the right-hand side is on the x-axis. The other variables are controls.
-* `ngroups`: Number of bins
+* `nbins`: Number of bins
 
 ### Keyword arguments
 * `weights`: A symbol for weights
 * `seriestype`:  `:scatter` (the default) plots bins. `:linearfit` adds a regression line. `:scatterpath` adds a line to connect the bins.
-* `kwargs...`: Additional attributes for [`Plots`](@ref). 
+* `kwargs...`: Additional attributes for [`plot`](@ref). 
 
 
 ### Examples
@@ -48,21 +48,21 @@ binscatter(groupby(df, :Post70), @formula(Sales ~ Price))
 binscatter
 
 
-function bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm), ngroups::Integer = 20; 
+function bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm), nbins::Integer = 20; 
             weights::Union{Symbol, Nothing} = nothing)
     df = partial_out(df, _shift(f); weights = weights, align = false, add_mean = true)[1]
     cols = names(df)
-    df.__cut = cut(df[!, end], ngroups; allowempty = true)
+    df.__cut = cut(df[!, end], nbins; allowempty = true)
     df = groupby(df, :__cut)
     combine(df, cols .=> mean .=> cols; keepkeys = false)
 end
 
-function bin(df::GroupedDataFrame, @nospecialize(f::FormulaTerm), ngroups::Integer = 20; 
+function bin(df::GroupedDataFrame, @nospecialize(f::FormulaTerm), nbins::Integer = 20; 
             weights::Union{Symbol, Nothing} = nothing)
-    combine(d -> bin(d, f, ngroups; weights = weights), df; ungroup = false)
+    combine(d -> bin(d, f, nbins; weights = weights), df; ungroup = false)
 end
 
-
+#transform lhs ~ x + rhs to lhs + x ~ rhs
 function _shift(@nospecialize(formula::FormulaTerm))
     lhs = formula.lhs
     rhs = formula.rhs
@@ -76,18 +76,16 @@ function _shift(@nospecialize(formula::FormulaTerm))
     FormulaTerm(tuple(lhs..., rhs[i]), Tuple(term for term in rhs if term != rhs[i]))
 end
 
-#user recipe: same thing as @userplot Binscatter
+#user recipe
 mutable struct Binscatter
     args
 end
 binscatter(args...; kwargs...) = RecipesBase.plot(Binscatter(args); kwargs...)
 binscatter!(args...; kwargs...) = RecipesBase.plot!(Binscatter(args); kwargs...)
 
-# user recipe
 @recipe function f(bs::Binscatter; weights = nothing)
     df = bin(bs.args...; weights = weights)
     if df isa DataFrame
-        # DataFrame case
         cols = names(df)
         N = length(cols)
         x = df[!, end]
@@ -98,14 +96,13 @@ binscatter!(args...; kwargs...) = RecipesBase.plot!(Binscatter(args); kwargs...)
             xguide --> cols[end]
             if size(Y, 2) == 1
                 yguide --> cols[1]
-                label --> false
+                label --> ""
             else
                 label --> reshape(cols[1:(end-1)], 1, N-1)
             end
             x, Y
         end
     elseif df isa GroupedDataFrame
-        # GroupedDataFrame case
         for (k, out) in pairs(df)
             cols = string.(valuecols(df))
             N = length(cols)
