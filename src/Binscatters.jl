@@ -8,7 +8,7 @@ using RecipesBase
 
 """
     binscatter(df::Union{DataFrame, GroupedDataFrame}, f::FormulaTerm, ngroups::Integer; 
-                weights::Union{Symbol, Nothing} = nothing,
+                weights::Union{Symbol, Nothing} = nothing, seriestype::Symbol = :scatter,
                 kwargs...)
 
 Outputs a binned scatterplot
@@ -20,7 +20,8 @@ Outputs a binned scatterplot
 
 ### Keyword arguments
 * `weights`: A symbol for weights
-* `kwargs...`: Additional attributes for [`Plots`](@ref). In particular, `seriestype = :scatter` plots bins, `seriestype = :linearfit` adds a regression line, `seriestype = scatterpath` adds a line to connect the bins.
+* `seriestype`:  `:scatter` (the default) plots bins. `:linearfit` adds a regression line. `:scatterpath` adds a line to connect the bins.
+* `kwargs...`: Additional attributes for [`Plots`](@ref). 
 
 
 ### Examples
