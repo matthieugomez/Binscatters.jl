@@ -23,13 +23,13 @@ bin(df, @formula(y+x2~x1))
 bin(groupby(df, :id1), @formula(y~x1))
 
 binscatter(df, @formula(y ~ x1))
-binscatter(df, @formula(y ~ x1), kind = :connect)
-binscatter(df, @formula(y ~ x1), kind = :lfit)
+binscatter(df, @formula(y ~ x1), seriestype = :scatterpath)
+binscatter(df, @formula(y ~ x1), seriestype = :linearfit)
 
 
 binscatter(df, @formula(y + x2 ~ x1))
-binscatter(df, @formula(y + x2 ~ x1), kind = :connect)
-binscatter(df, @formula(y + x2 ~ x1), kind = :lfit)
+binscatter(df, @formula(y + x2 ~ x1), seriestype = :scatterpath)
+binscatter(df, @formula(y + x2 ~ x1), seriestype = :linearfit)
 
 
 
@@ -41,10 +41,10 @@ binscatter(df, @formula(y~x1+x2))
 
 df.dummy = df.id1 .>= 25
 binscatter(groupby(df, :dummy), @formula(y~x1))
-binscatter(groupby(df, :dummy), @formula(y~x1), kind = :connect)
-binscatter(groupby(df, :dummy), @formula(y~x1), kind = :lfit)
+binscatter(groupby(df, :dummy), @formula(y~x1), seriestype = :scatterpath)
+binscatter(groupby(df, :dummy), @formula(y~x1), seriestype = :linearfit)
 
 
 binscatter(groupby(df, :dummy), @formula(y+x2~x1))
-binscatter(groupby(df, :dummy), @formula(y+x2~x1), kind = :connect)
-binscatter(groupby(df, :dummy), @formula(y+x2~x1), kind = :lfit)
+binscatter(groupby(df, :dummy), @formula(y+x2~x1), seriestype = :scatterpath)
+binscatter(groupby(df, :dummy), @formula(y+x2~x1), seriestype = :linearfit)

@@ -8,7 +8,7 @@ using RecipesBase
 
 """
     binscatter(df::Union{DataFrame, GroupedDataFrame}, f::FormulaTerm, ngroups::Integer; 
-                weights::Union{Symbol, Nothing} = nothing, kind::Union{Symbol, Nothing} = nothing,
+                weights::Union{Symbol, Nothing} = nothing,
                 kwargs...)
 
 Outputs a binned scatterplot
@@ -20,8 +20,8 @@ Outputs a binned scatterplot
 
 ### Keyword arguments
 * `weights`: A symbol for weights
-* `kind`: The type of line. `:connect` connects the bins, `:lfit` plots a regression line, `nothing` does not plot lines 
-* `kwargs...`: Additional attributes for [`Plots`](@ref)
+* `kwargs...`: Additional attributes for [`Plots`](@ref). In particular, `seriestype = :scatter` plots bins, `seriestype = :linearfit` adds a regression line, `seriestype = scatterpath` adds a line to connect the bins.
+
 
 ### Examples
 ```julia
@@ -45,6 +45,7 @@ binscatter(groupby(df, :Post70), @formula(Sales ~ Price))
 ```
 """
 binscatter
+
 
 function bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm), ngroups::Integer = 20; 
             weights::Union{Symbol, Nothing} = nothing)
@@ -81,18 +82,17 @@ end
 binscatter(args...; kwargs...) = RecipesBase.plot(Binscatter(args); kwargs...)
 binscatter!(args...; kwargs...) = RecipesBase.plot!(Binscatter(args); kwargs...)
 
-@recipe function f(bs::Binscatter; weights = nothing, kind = nothing)
+# user recipe
+@recipe function f(bs::Binscatter; weights = nothing)
     df = bin(bs.args...; weights = weights)
     if df isa DataFrame
+        # DataFrame case
         cols = names(df)
         N = length(cols)
         x = df[!, end]
         Y = Matrix(df[!, 1:(end-1)])
         @series begin
-            markershape --> :circle
-            if kind ∈ (nothing, :lfit)
-                seriestype --> :scatter
-            end
+            seriestype --> :scatter
             markerstrokealpha --> 0.0
             xguide --> cols[end]
             if size(Y, 2) == 1
@@ -103,31 +103,15 @@ binscatter!(args...; kwargs...) = RecipesBase.plot!(Binscatter(args); kwargs...)
             end
             x, Y
         end
-        if kind == :lfit
-            if size(Y, 2) == 1
-                yguide --> cols[1]
-            else
-                linecolor := :black
-            end
-            X = hcat(ones(length(x)), x)
-            β = (X'X) \ (X'Y)
-            @series begin
-                xguide --> cols[end]
-                label := false
-                x, X * β
-            end
-        end
-    else
+    elseif df isa GroupedDataFrame
+        # GroupedDataFrame case
         for (k, out) in pairs(df)
             cols = string.(valuecols(df))
             N = length(cols)
             x = out[!, end]
             Y = Matrix(out[!, (end-(N-1)):(end-1)])
             @series begin
-                markershape --> :circle
-                if kind ∈ (nothing, :lfit)
-                    seriestype --> :scatter
-                end
+                seriestype --> :scatter
                 markerstrokealpha --> 0.0
                 xguide --> cols[end]
                 if size(Y, 2) == 1
@@ -139,30 +123,35 @@ binscatter!(args...; kwargs...) = RecipesBase.plot!(Binscatter(args); kwargs...)
                 x, Y
             end
         end
-        # to get right color for first one, needs to do that
-        if kind == :lfit
-            for (k, out) in pairs(df)
-                cols = string.(valuecols(df))
-                N = length(cols)
-                x = out[!, end]
-                Y = Matrix(out[!, (end-(N-1)):(end-1)])
-                X = hcat(ones(length(x)), x)
-                β = (X'X) \ (X'Y)
-                @series begin
-                    if size(Y, 2) == 1
-                         yguide --> cols[1]
-                    end
-                    linecolor := :black
-                    xguide --> cols[end]
-                    label := nothing
-                    x, X * β
-                end
-            end
-        end
     end
 end
 
+@recipe function f(::Type{Val{:linearfit}}, x, y , z)
+    seriestype := :scatter
+    @series begin
+        x := x
+        y := y
+        seriestype := :scatter
+        ()
+    end
+    X = hcat(ones(length(x)), x)
+    β = X'X \ X'y
+    @series begin
+        seriestype := :path
+        label := ""
+        primary := false
+        x := x
+        y := X * β
+        ()
+    end
+    primary := false
+    ()
+end
 
 export bin, binscatter, binscatter!, fe, @formula
+
+
+
+
 
 end
