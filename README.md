@@ -5,7 +5,7 @@ This package defines a [`Plots`](https://github.com/JuliaPlots/Plots.jl) recipe 
 ## Syntax
 
 ```julia
-    binscatter(df::Union{DataFrame, GroupedDataFrame}, f::FormulaTerm, nbins::Integer; 
+    binscatter(df::Union{DataFrame, GroupedDataFrame}, f::FormulaTerm, nbins = 20; 
                 weights::Union{Symbol, Nothing} = nothing, seriestype::Symbol = :scatter,
                 kwargs...)
 ```
