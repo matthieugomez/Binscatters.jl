@@ -57,8 +57,7 @@ function bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm), nbins::Intege
     combine(df, cols .=> mean .=> cols; keepkeys = false)
 end
 
-function bin(df::GroupedDataFrame, @nospecialize(f::FormulaTerm), nbins::Integer = 20; 
-            weights::Union{Symbol, Nothing} = nothing)
+function bin(df::GroupedDataFrame, @nospecialize(f::FormulaTerm), nbins::Integer = 20; weights::Union{Symbol, Nothing} = nothing)
     combine(d -> bin(d, f, nbins; weights = weights), df; ungroup = false)
 end
 
@@ -124,7 +123,7 @@ binscatter!(args...; kwargs...) = RecipesBase.plot!(Binscatter(args); kwargs...)
     end
 end
 
-@recipe function f(::Type{Val{:linearfit}}, x, y , z)
+@recipe function f(::Type{Val{:linearfit}}, x, y, z)
     seriestype := :scatter
     @series begin
         x := x
