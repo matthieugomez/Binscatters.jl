@@ -9,7 +9,6 @@ This package defines a [`Plots`](https://github.com/JuliaPlots/Plots.jl) recipe 
                 weights::Union{Symbol, Nothing} = nothing, seriestype::Symbol = :scatter,
                 kwargs...)
 ```
-Outputs a binned scatterplot
 
 ### Arguments
 * `df`: a DataFrame or a GroupedDataFrame
@@ -18,7 +17,11 @@ Outputs a binned scatterplot
 
 ### Keyword arguments
 * `weights`: A symbol for weights
-* `seriestype`:  `:scatter` (the default) plots bins. `:linearfit` adds a regression line. `:scatterpath` adds a line to connect the bins.
+* `seriestype`:  
+	- `:scatter` (the default) plots bins
+	- `:linearfit` adds a regression line
+	- `:scatterpath` adds a line to connect the bins.
+
 * `kwargs...`: Additional attributes for [`plot`](@ref). 
 
 
