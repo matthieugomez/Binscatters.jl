@@ -90,7 +90,7 @@ binscatter!(args...; kwargs...) = RecipesBase.plot!(Binscatter(args); kwargs...)
         x = df[!, end]
         Y = Matrix(df[!, 1:(end-1)])
         @series begin
-            seriestype --> :scatter
+            seriestype --> :linearfit
             markerstrokealpha --> 0.0
             xguide --> cols[end]
             if size(Y, 2) == 1
@@ -108,14 +108,14 @@ binscatter!(args...; kwargs...) = RecipesBase.plot!(Binscatter(args); kwargs...)
             x = out[!, end]
             Y = Matrix(out[!, (end-(N-1)):(end-1)])
             @series begin
-                seriestype --> :scatter
+                seriestype --> :linearfit
                 markerstrokealpha --> 0.0
                 xguide --> cols[end]
                 if size(Y, 2) == 1
                     yguide --> cols[1]
-                    label --> string(NamedTuple(k))
+                    label --> _show(NamedTuple(k))
                 else
-                    label --> reshape(cols[1:(end-1)], 1, N-1) .* " " .* string(NamedTuple(k))
+                    label --> reshape(cols[1:(end-1)], 1, N-1) .* " " .* _show(NamedTuple(k))
                 end
                 x, Y
             end
@@ -123,6 +123,9 @@ binscatter!(args...; kwargs...) = RecipesBase.plot!(Binscatter(args); kwargs...)
     end
 end
 
+function _show(x::NamedTuple)
+   "(" * join((string(k) * " = " * string(v) for (k, v) in pairs(x)), ", ") * ")"
+end
 @recipe function f(::Type{Val{:linearfit}}, x, y, z)
     seriestype := :scatter
     @series begin

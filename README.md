@@ -18,9 +18,9 @@ This package defines a [`Plots`](https://github.com/JuliaPlots/Plots.jl) recipe 
 ### Keyword arguments
 * `weights`: A symbol for weights
 * `seriestype`:  
-	- `:scatter` (the default) plots bins
-	- `:linearfit` adds a regression line
-	- `:scatterpath` adds a line to connect the bins.
+	- `:linearfit` (default) plots bins with a regression line
+	- `:scatter` only plots bins
+	- `:scatterpath` plots bins with a connecting line
 
 * `kwargs...`: Additional attributes for [`plot`](@ref). 
 
@@ -28,9 +28,25 @@ This package defines a [`Plots`](https://github.com/JuliaPlots/Plots.jl) recipe 
 ## Examples
 ```julia
 using DataFrames, RDatasets, Plots, Binscatters
-df = dataset("plm", "Cigar")
-binscatter(df, @formula(Sales ~ Price))
+df = dataset("datasets", "iris")
 ```
+Length seems to be a decreasing function of with in the `iris` dataset
+```julia
+binscatter(df, @formula(SepalLength ~ SepalWidth))
+```
+![binscatter](http://www.matthieugomez.com/files/p1.png)
+
+However, it is an increasing function within species
+```julia
+binscatter(groupby(df, :Species), @formula(SepalLength ~ SepalWidth))
+```
+![binscatter](http://www.matthieugomez.com/files/p2.png)
+When there is a large number of groups, a better way to visualize this fact is to partial out the variables with respect to species:
+```julia
+binscatter(df, @formula(SepalLength ~ SepalWidth + fe(Species)))
+```
+![binscatter](http://www.matthieugomez.com/files/p3.png)
+
 
 ## Installation
 The package is registered in the [`General`](https://github.com/JuliaRegistries/General) registry and so can be installed at the REPL with `] add Binscatter`.
