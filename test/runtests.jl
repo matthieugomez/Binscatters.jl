@@ -9,18 +9,18 @@ df.x2 = df.NDI
 df.w = df.Pop
 
 
-out = bin(df, @formula(y~x1))
+out = Binscatters.bin(df, @formula(y~x1))
 @test minimum(out.x1) >= minimum(df.x1)
 @test maximum(out.x1) <= maximum(df.x1)
-#bin(df, @formula(y~x1), weights = :w)
+#Binscatters.bin(df, @formula(y~x1), weights = :w)
 #@test minimum(out.x1) >= minimum(df.x1)
 #@test maximum(out.x1) <= maximum(df.x1)
-bin(df, @formula(y~x1), 10)
-bin(df, @formula(y~x1+x2))
-bin(df, @formula(y ~ x1 + fe(id1)))
-bin(df, @formula(y+x2~x1))
+Binscatters.bin(df, @formula(y~x1), 10)
+Binscatters.bin(df, @formula(y~x1+x2))
+Binscatters.bin(df, @formula(y ~ x1 + fe(id1)))
+Binscatters.bin(df, @formula(y+x2~x1))
 
-bin(groupby(df, :id1), @formula(y~x1))
+Binscatters.bin(groupby(df, :id1), @formula(y~x1))
 
 binscatter(df, @formula(y ~ x1))
 binscatter(df, @formula(y ~ x1), seriestype = :scatterpath)

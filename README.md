@@ -20,7 +20,6 @@ binscatter(df::Union{DataFrame, GroupedDataFrame}, f::FormulaTerm, n = 20;
 	- `:scatter` (default) only plots bins
 	- `:linearfit` plots bins with a regression line
 	- `:scatterpath` plots bins with a connecting line
-
 * `kwargs...`: Additional attributes for [`plot`](@ref). 
 
 
@@ -46,6 +45,8 @@ binscatter(df, @formula(SepalLength ~ SepalWidth + fe(Species)), seriestype = :l
 ```
 ![binscatter](http://www.matthieugomez.com/files/p3.png)
 
+
+See more examples by typing `?binscatter` in the REPL.
 
 ## Installation
 The package is registered in the [`General`](https://github.com/JuliaRegistries/General) registry and so can be installed at the REPL with `] add Binscatter`.

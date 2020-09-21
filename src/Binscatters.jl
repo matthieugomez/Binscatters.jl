@@ -53,14 +53,14 @@ binscatter(df, @formula(Sales ~ Price))
 # Change the number of bins
 binscatter(df, @formula(Sales ~ Price), 10)
 
-# Residualize the y and x variables w.r.t. controls
+# Residualize w.r.t. controls
 binscatter(df, @formula(Sales ~ Price + NDI))
 binscatter(df, @formula(Sales ~ Price + fe(Year)))
 
 # Plot multiple variables on the y-axis
 binscatter(df, @formula(Sales + NDI ~ Price))
 
-# binscatter by groups
+# Plot binscatters within groups
 df.Post70 = df.Year .>= 70
 binscatter(groupby(df, :Post70), @formula(Sales ~ Price))
 ```
@@ -125,13 +125,13 @@ end
         ()
     end
     X = hcat(ones(length(x)), x)
-    y = X * (X'X \ X'y)
+    yhat = X * (X'X \ X'y)
     @series begin
         seriestype := :path
         label := ""
         primary := false
         x := x
-        y := y
+        y := yhat
         ()
     end
     primary := false
