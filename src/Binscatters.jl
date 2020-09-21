@@ -126,6 +126,7 @@ end
 function _show(x::NamedTuple)
    "(" * join((string(k) * " = " * string(v) for (k, v) in pairs(x)), ", ") * ")"
 end
+
 @recipe function f(::Type{Val{:linearfit}}, x, y, z)
     seriestype := :scatter
     @series begin
