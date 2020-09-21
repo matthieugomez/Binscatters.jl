@@ -6,17 +6,37 @@ using DataFrames
 using FixedEffectModels
 using RecipesBase
 
+include("utils.jl")
+
+function bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm), n::Integer = 20; 
+            weights::Union{Symbol, Nothing} = nothing)
+    df = partial_out(df, _shift(f); weights = weights, align = false, add_mean = true)[1]
+    cols = names(df)
+    df.__cut = cut(df[!, end], n; allowempty = true)
+    df = groupby(df, :__cut)
+    combine(df, cols .=> mean .=> cols; keepkeys = false)
+end
+
+function bin(df::GroupedDataFrame, @nospecialize(f::FormulaTerm), n::Integer = 20; weights::Union{Symbol, Nothing} = nothing)
+    combine(d -> bin(d, f, n; weights = weights), df; ungroup = false)
+end
+
+function bin(df, @nospecialize(f::FormulaTerm), n::Integer = 20; 
+            weights::Union{Symbol, Nothing} = nothing)
+    bin(DataFrame(df), f, n; weights = weight)
+end
+
 """
-    binscatter(df::Union{DataFrame, GroupedDataFrame}, f::FormulaTerm, nbins::Integer = 20; 
+    binscatter(df::Union{DataFrame, GroupedDataFrame}, f::FormulaTerm, n::Integer = 20; 
                 weights::Union{Symbol, Nothing} = nothing, seriestype::Symbol = :scatter,
                 kwargs...)
 
 Outputs a binned scatterplot
 
 ### Arguments
-* `df`: a DataFrame or a GroupedDataFrame
-* `f`: A formula created using [`@formula`](@ref). The variable(s) in the left-hand side are on the y-axis. The first variable in the right-hand side is on the x-axis. The other variables are controls.
-* `nbins`: Number of bins
+* `df`: A Table, a DataFrame or a GroupedDataFrame
+* `f`: A formula created using [`@formula`](@ref). The variable(s) in the left-hand side are plotted on the y-axis. The first variable in the right-hand side is plotted on the x-axis. Add other variables for controls.
+* `n`: Number of bins (default to 20).
 
 ### Keyword arguments
 * `weights`: A symbol for weights
@@ -47,41 +67,13 @@ binscatter(groupby(df, :Post70), @formula(Sales ~ Price))
 """
 binscatter
 
-
-function bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm), nbins::Integer = 20; 
-            weights::Union{Symbol, Nothing} = nothing)
-    df = partial_out(df, _shift(f); weights = weights, align = false, add_mean = true)[1]
-    cols = names(df)
-    df.__cut = cut(df[!, end], nbins; allowempty = true)
-    df = groupby(df, :__cut)
-    combine(df, cols .=> mean .=> cols; keepkeys = false)
-end
-
-function bin(df::GroupedDataFrame, @nospecialize(f::FormulaTerm), nbins::Integer = 20; weights::Union{Symbol, Nothing} = nothing)
-    combine(d -> bin(d, f, nbins; weights = weights), df; ungroup = false)
-end
-
-#transform lhs ~ x + rhs to lhs + x ~ rhs
-function _shift(@nospecialize(formula::FormulaTerm))
-    lhs = formula.lhs
-    rhs = formula.rhs
-    if !(lhs isa Tuple)
-        lhs = (lhs,)
-    end
-    if !(rhs isa Tuple)
-        rhs = (rhs,)
-    end
-    i = findfirst(x -> x isa Term, rhs)
-    FormulaTerm(tuple(lhs..., rhs[i]), Tuple(term for term in rhs if term != rhs[i]))
-end
-
-#user recipe
 mutable struct Binscatter
     args
 end
 binscatter(args...; kwargs...) = RecipesBase.plot(Binscatter(args); kwargs...)
 binscatter!(args...; kwargs...) = RecipesBase.plot!(Binscatter(args); kwargs...)
 
+# User recipe
 @recipe function f(bs::Binscatter; weights = nothing)
     df = bin(bs.args...; weights = weights)
     if df isa DataFrame
@@ -90,7 +82,7 @@ binscatter!(args...; kwargs...) = RecipesBase.plot!(Binscatter(args); kwargs...)
         x = df[!, end]
         Y = Matrix(df[!, 1:(end-1)])
         @series begin
-            seriestype --> :linearfit
+            seriestype --> :scatter
             markerstrokealpha --> 0.0
             xguide --> cols[end]
             if size(Y, 2) == 1
@@ -107,24 +99,21 @@ binscatter!(args...; kwargs...) = RecipesBase.plot!(Binscatter(args); kwargs...)
             N = length(cols)
             x = out[!, end]
             Y = Matrix(out[!, (end-(N-1)):(end-1)])
+            str = "(" * join((string(k) * " = " * string(v) for (k, v) in pairs(NamedTuple(k))), ", ") * ")"
             @series begin
-                seriestype --> :linearfit
+                seriestype --> :scatter
                 markerstrokealpha --> 0.0
                 xguide --> cols[end]
                 if size(Y, 2) == 1
                     yguide --> cols[1]
-                    label --> _show(NamedTuple(k))
+                    label --> str
                 else
-                    label --> reshape(cols[1:(end-1)], 1, N-1) .* " " .* _show(NamedTuple(k))
+                    label --> reshape(cols[1:(end-1)], 1, N-1) .* " " .* str
                 end
                 x, Y
             end
         end
     end
-end
-
-function _show(x::NamedTuple)
-   "(" * join((string(k) * " = " * string(v) for (k, v) in pairs(x)), ", ") * ")"
 end
 
 @recipe function f(::Type{Val{:linearfit}}, x, y, z)
@@ -136,23 +125,19 @@ end
         ()
     end
     X = hcat(ones(length(x)), x)
-    β = X'X \ X'y
+    y = X * (X'X \ X'y)
     @series begin
         seriestype := :path
         label := ""
         primary := false
         x := x
-        y := X * β
+        y := y
         ()
     end
     primary := false
     ()
 end
 
-export bin, binscatter, binscatter!, fe, @formula
-
-
-
-
+export @formula, fe, binscatter, binscatter!
 
 end
