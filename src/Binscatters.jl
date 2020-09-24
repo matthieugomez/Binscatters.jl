@@ -17,13 +17,14 @@ function bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm), n::Integer = 
     combine(df, cols .=> mean .=> cols; keepkeys = false)
 end
 
-function bin(df::GroupedDataFrame, @nospecialize(f::FormulaTerm), n::Integer = 20; weights::Union{Symbol, Nothing} = nothing)
+function bin(df::GroupedDataFrame, @nospecialize(f::FormulaTerm), n::Integer = 20; 
+            weights::Union{Symbol, Nothing} = nothing)
     combine(d -> bin(d, f, n; weights = weights), df; ungroup = false)
 end
 
 function bin(df, @nospecialize(f::FormulaTerm), n::Integer = 20; 
             weights::Union{Symbol, Nothing} = nothing)
-    bin(DataFrame(df), f, n; weights = weight)
+    bin(DataFrame(df), f, n; weights = weights)
 end
 
 """
@@ -40,7 +41,7 @@ Outputs a binned scatterplot
 
 ### Keyword arguments
 * `weights`: A symbol for weights
-* `seriestype`:  `:scatter` (the default) plots bins. `:linearfit` adds a regression line. `:scatterpath` adds a line to connect the bins.
+* `seriestype`:  `:scatter` (the default) plots bins, `:scatterpath` adds a line to connect the bins, `:linearfit` adds a regression line. 
 * `kwargs...`: Additional attributes for [`plot`](@ref). 
 
 
