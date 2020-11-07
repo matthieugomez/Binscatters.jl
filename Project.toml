@@ -1,7 +1,7 @@
 name = "Binscatters"
 uuid = "deae81f5-4416-4700-a781-f7a18782af9b"
 authors = ["matthieugomez <gomez.matthieu@gmail.com>"]
-version = "0.1.0"
+version = "0.1.1"
 
 
 [deps]
