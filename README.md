@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/matthieugomez/Binscatters.jl.svg?branch=master)](https://travis-ci.com/matthieugomez/Binscatters.jl)
+[![Build status](https://github.com/matthieugomez/Binscatters.jl/workflows/CI/badge.svg)](https://github.com/matthieugomez/Binscatters.jl/actions)
 
 This package defines a [`Plots`](https://github.com/JuliaPlots/Plots.jl) recipe to generate binned scatterplots (to mimick the Stata command [`binscatter`](https://github.com/michaelstepner/binscatter) in Julia).
 
