@@ -100,7 +100,7 @@ function bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm), n::Integer = 
             weights::Union{Symbol, Nothing} = nothing)
     df = partial_out(df, _shift(f); weights = weights, align = false, add_mean = true)[1]
     cols = names(df)
-    df.__cut = cut(df[!, end], n; allowempty = true)
+    df.__cut = DataFrames.cut(df[!, end], n; allowempty = true)
     df = groupby(df, :__cut)
     combine(df, cols .=> mean .=> cols; keepkeys = false)
 end
