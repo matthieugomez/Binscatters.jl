@@ -69,7 +69,7 @@ df.Post70 = df.Year .>= 70
 binscatter(groupby(df, :Post70), @formula(Sales ~ Price))
 
 # Use keyword argument from [`plot'](@ref) to customize the plot:
-binscatter(df, @formula(SepalLength ~ SepalWidth), markerstrokewidth = 0.0)
+binscatter(df, @formula(SepalLength ~ SepalWidth), msc = :auto)
 binscatter(df, @formula(SepalLength ~ SepalWidth), seriestype = :scatterpath, linecolor = :blue, markercolor = :red)
 ```
 """
