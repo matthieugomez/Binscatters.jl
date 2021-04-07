@@ -1,6 +1,6 @@
 [![Build status](https://github.com/matthieugomez/Binscatters.jl/workflows/CI/badge.svg)](https://github.com/matthieugomez/Binscatters.jl/actions)
 
-This package defines a [`Plots`](https://github.com/JuliaPlots/Plots.jl) recipe to generate binned scatterplots (to mimick the Stata command [`binscatter`](https://github.com/michaelstepner/binscatter) in Julia).
+This package defines a [`Plots`](https://github.com/JuliaPlots/Plots.jl) recipe to implement the Stata command [`binscatter`](https://github.com/michaelstepner/binscatter) in Julia.
 
 ## Syntax
 
@@ -45,6 +45,13 @@ binscatter(df, @formula(SepalLength ~ SepalWidth + fe(Species)), seriestype = :l
 ```
 ![binscatter](http://www.matthieugomez.com/files/p3.png)
 
+
+
+#### Options
+You can use the typical options in [`Plot`](http://docs.juliaplots.org/latest/) to customize the plot:
+```julia
+binscatter(df, @formula(SepalLength ~ SepalWidth), seriestype = :scatterpath, linecolor = :blue, markercolor = :red)
+```
 
 See more examples by typing `?binscatter` in the REPL.
 

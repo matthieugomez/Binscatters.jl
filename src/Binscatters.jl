@@ -42,6 +42,15 @@ binscatter(df, @formula(Sales + NDI ~ Price))
 # Plot binscatters within groups
 df.Post70 = df.Year .>= 70
 binscatter(groupby(df, :Post70), @formula(Sales ~ Price))
+
+# Use keyword argument from [`plot'](@ref) to customize the plot:
+```julia
+binscatter(df, @formula(SepalLength ~ SepalWidth), seriestype = :scatterpath, linecolor = :blue, markercolor = :red)
+binscatter(df, @formula(SepalLength ~ SepalWidth), markerstrokealpha = 0.0)
+
+```
+
+
 ```
 """
 binscatter
@@ -95,13 +104,39 @@ binscatter!(args...; kwargs...) = RecipesBase.plot!(Binscatter(args); kwargs...)
     end
 end
 
+@recipe function f(::Type{Val{:linearfit}}, x, y, z)
+    seriestype := :scatter
+    @series begin
+        x := x
+        y := y
+        seriestype := :scatter
+        ()
+    end
+    X = hcat(ones(length(x)), x)
+    yhat = X * (X'X \ X'y)
+    @series begin
+        seriestype := :path
+        label := ""
+        primary := false
+        x := x
+        y := yhat
+        ()
+    end
+    primary := false
+    ()
+end
+
+# scatterpath is defined at https://github.com/JuliaPlots/Plots.jl/blob/master/src/recipes.jl#L164
+
+
 function bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm), n::Integer = 20; 
             weights::Union{Symbol, Nothing} = nothing)
     df = partial_out(df, _shift(f); weights = weights, align = false, add_mean = true)[1]
     cols = names(df)
     df.__cut = _cut(df[!, end], n)
-    df = groupby(df, :__cut)
-    combine(df, cols .=> mean .=> cols; keepkeys = false)
+    df = groupby(df, :__cut, sort = true)
+    out = combine(df, cols .=> mean .=> cols; keepkeys = false)
+    return out
 end
 
 function bin(df::GroupedDataFrame, @nospecialize(f::FormulaTerm), n::Integer = 20; 
