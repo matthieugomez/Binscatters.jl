@@ -54,9 +54,6 @@ binscatter(df, @formula(SepalLength ~ SepalWidth + fe(Species)), seriestype = :l
 ![binscatter](http://www.matthieugomez.com/files/p3.png)
 
 
-
-
-
 See more examples by typing `?binscatter` in the REPL.
 
 ## Installation
