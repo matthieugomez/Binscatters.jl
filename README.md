@@ -32,7 +32,7 @@ df = dataset("datasets", "iris")
 #### Options
 You can use the typical options in [`Plot`](http://docs.juliaplots.org/latest/) to customize the plot:
 ```julia
-binscatter(df, @formula(SepalLength ~ SepalWidth), seriestype = :scatterpath, linecolor = :blue, markercolor = :red)
+binscatter(df, @formula(SepalLength ~ SepalWidth), seriestype = :scatterpath, linecolor = :blue, markercolor = :blue)
 ```
 
 #### Residualizing
