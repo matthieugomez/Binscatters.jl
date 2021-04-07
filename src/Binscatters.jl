@@ -69,6 +69,7 @@ df.Post70 = df.Year .>= 70
 binscatter(groupby(df, :Post70), @formula(Sales ~ Price))
 
 # Use keyword argument from [`plot'](@ref) to customize the plot:
+binscatter(df, @formula(SepalLength ~ SepalWidth), markerstrokewidth = 0.0)
 binscatter(df, @formula(SepalLength ~ SepalWidth), seriestype = :scatterpath, linecolor = :blue, markercolor = :red)
 ```
 """
@@ -90,7 +91,6 @@ binscatter!(args...; kwargs...) = RecipesBase.plot!(Binscatter(args); kwargs...)
         Y = Matrix(df[!, 1:(end-1)])
         @series begin
             seriestype --> :scatter
-            markerstrokealpha --> 0.0
             xguide --> cols[end]
             if size(Y, 2) == 1
                 yguide --> cols[1]
@@ -109,7 +109,6 @@ binscatter!(args...; kwargs...) = RecipesBase.plot!(Binscatter(args); kwargs...)
             str = "(" * join((string(k) * " = " * string(v) for (k, v) in pairs(NamedTuple(k))), ", ") * ")"
             @series begin
                 seriestype --> :scatter
-                markerstrokealpha --> 0.0
                 xguide --> cols[end]
                 if size(Y, 2) == 1
                     yguide --> cols[1]
