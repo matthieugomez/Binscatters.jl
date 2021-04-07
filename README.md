@@ -28,6 +28,14 @@ binscatter(df::Union{DataFrame, GroupedDataFrame}, f::FormulaTerm, n = 20;
 using DataFrames, RDatasets, Plots, Binscatters
 df = dataset("datasets", "iris")
 ```
+
+#### Options
+You can use the typical options in [`Plot`](http://docs.juliaplots.org/latest/) to customize the plot:
+```julia
+binscatter(df, @formula(SepalLength ~ SepalWidth), seriestype = :scatterpath, linecolor = :blue, markercolor = :red)
+```
+
+#### Residualizing
 Length seems to be a decreasing function of with in the `iris` dataset
 ```julia
 binscatter(df, @formula(SepalLength ~ SepalWidth), seriestype = :linearfit)
@@ -47,11 +55,7 @@ binscatter(df, @formula(SepalLength ~ SepalWidth + fe(Species)), seriestype = :l
 
 
 
-#### Options
-You can use the typical options in [`Plot`](http://docs.juliaplots.org/latest/) to customize the plot:
-```julia
-binscatter(df, @formula(SepalLength ~ SepalWidth), seriestype = :scatterpath, linecolor = :blue, markercolor = :red)
-```
+
 
 See more examples by typing `?binscatter` in the REPL.
 

@@ -4,7 +4,32 @@ using DataFrames
 using FixedEffectModels
 using RecipesBase
 
+
 include("utils.jl")
+
+@recipe function f(::Type{Val{:linearfit}}, x, y, z)
+    seriestype := :scatter
+    @series begin
+        x := x
+        y := y
+        seriestype := :scatter
+        ()
+    end
+    X = hcat(ones(length(x)), x)
+    yhat = X * (X'X \ X'y)
+    @series begin
+        seriestype := :path
+        label := ""
+        primary := false
+        x := x
+        y := yhat
+        ()
+    end
+    primary := false
+    ()
+end
+
+
 """
     binscatter(df::Union{DataFrame, GroupedDataFrame}, f::FormulaTerm, n::Integer = 20; 
                 weights::Union{Symbol, Nothing} = nothing, seriestype::Symbol = :scatter,
@@ -63,7 +88,7 @@ binscatter!(args...; kwargs...) = RecipesBase.plot!(Binscatter(args); kwargs...)
 
 # User recipe
 @recipe function f(bs::Binscatter; weights = nothing)
-    df = bin(bs.args...; weights = weights)
+    df = _bin(bs.args...; weights = weights)
     if df isa DataFrame
         cols = names(df)
         N = length(cols)
@@ -104,32 +129,11 @@ binscatter!(args...; kwargs...) = RecipesBase.plot!(Binscatter(args); kwargs...)
     end
 end
 
-@recipe function f(::Type{Val{:linearfit}}, x, y, z)
-    seriestype := :scatter
-    @series begin
-        x := x
-        y := y
-        seriestype := :scatter
-        ()
-    end
-    X = hcat(ones(length(x)), x)
-    yhat = X * (X'X \ X'y)
-    @series begin
-        seriestype := :path
-        label := ""
-        primary := false
-        x := x
-        y := yhat
-        ()
-    end
-    primary := false
-    ()
-end
+
 
 # scatterpath is defined at https://github.com/JuliaPlots/Plots.jl/blob/master/src/recipes.jl#L164
 
-
-function bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm), n::Integer = 20; 
+function _bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm), n::Integer = 20; 
             weights::Union{Symbol, Nothing} = nothing)
     df = partial_out(df, _shift(f); weights = weights, align = false, add_mean = true)[1]
     cols = names(df)
@@ -139,15 +143,16 @@ function bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm), n::Integer = 
     return out
 end
 
-function bin(df::GroupedDataFrame, @nospecialize(f::FormulaTerm), n::Integer = 20; 
+function _bin(df::GroupedDataFrame, @nospecialize(f::FormulaTerm), n::Integer = 20; 
             weights::Union{Symbol, Nothing} = nothing)
     combine(d -> bin(d, f, n; weights = weights), df; ungroup = false)
 end
 
-function bin(df, @nospecialize(f::FormulaTerm), n::Integer = 20; 
+function _bin(df, @nospecialize(f::FormulaTerm), n::Integer = 20; 
             weights::Union{Symbol, Nothing} = nothing)
     bin(DataFrame(df), f, n; weights = weights)
 end
+
 export @formula, fe, binscatter, binscatter!
 
 end
