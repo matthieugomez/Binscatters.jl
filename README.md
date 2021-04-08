@@ -20,7 +20,7 @@ binscatter(df::Union{DataFrame, GroupedDataFrame}, f::FormulaTerm, n = 20;
 	- `:scatter` (default) only plots bins
 	- `:linearfit` plots bins with a regression line
 	- `:scatterpath` plots bins with a connecting line
-* `kwargs...`: Additional attributes for [`plot`](@ref). 
+* `kwargs...`: Additional attributes from [`Plots`](http://docs.juliaplots.org/latest/). 
 
 
 ## Examples
@@ -29,11 +29,21 @@ using DataFrames, RDatasets, Plots, Binscatters
 df = dataset("datasets", "iris")
 ```
 
+
+
+#### Grouping
+Use `binscatter` on a `GroupedDataFrame` to do the plot per group
+```julia
+gdf = groupby(df, :Species)
+binscatter(gdf, @formula(SepalLength ~ SepalWidth), seriestype = :linearfit)
+```
+
 #### Options
 You can use the typical options in [`Plot`](http://docs.juliaplots.org/latest/) to customize the plot:
 ```julia
 binscatter(df, @formula(SepalLength ~ SepalWidth), seriestype = :scatterpath, linecolor = :blue, markercolor = :blue)
 ```
+
 
 #### Residualizing
 Length seems to be a decreasing function of with in the `iris` dataset
