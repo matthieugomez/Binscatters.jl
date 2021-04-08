@@ -31,12 +31,6 @@ df = dataset("datasets", "iris")
 
 
 
-#### Grouping
-Use `binscatter` on a `GroupedDataFrame` to do the plot per group
-```julia
-gdf = groupby(df, :Species)
-binscatter(gdf, @formula(SepalLength ~ SepalWidth), seriestype = :linearfit)
-```
 
 #### Options
 You can use the typical options in [`Plot`](http://docs.juliaplots.org/latest/) to customize the plot:
@@ -52,12 +46,12 @@ binscatter(df, @formula(SepalLength ~ SepalWidth), seriestype = :linearfit)
 ```
 ![binscatter](http://www.matthieugomez.com/files/p1.png)
 
-However, it is an increasing function within species
+However, it is an increasing function within species. To show this, you can apply `binscatter` on a `GroupedDataFrame`
 ```julia
 binscatter(groupby(df, :Species), @formula(SepalLength ~ SepalWidth), seriestype = :linearfit)
 ```
 ![binscatter](http://www.matthieugomez.com/files/p2.png)
-When there is a large number of groups, a better way to visualize this fact is to partial out the variables with respect to species:
+When there is a large number of groups, a better way to visualize this fact is to partial out the variables with respect to the group:
 ```julia
 binscatter(df, @formula(SepalLength ~ SepalWidth + fe(Species)), seriestype = :linearfit)
 ```
