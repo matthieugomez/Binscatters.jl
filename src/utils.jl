@@ -2,7 +2,7 @@ function bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm), n::Integer = 
             weights::Union{Symbol, Nothing} = nothing)
     df = partial_out(df, _shift(f); weights = weights, align = false, add_mean = true)[1]
     cols = names(df)
-    df.__cut = _cut(df[!, end], n)
+    df.__cut = cut(df[!, end], n)
     df = groupby(df, :__cut, sort = true)
     out = combine(df, cols .=> mean .=> cols; keepkeys = false)
     return out
@@ -20,13 +20,13 @@ end
 
 
 # simplified version of CategoricalArrays' cut
-function _cut(x::AbstractArray, ngroups::Integer)
+function cut(x::AbstractArray, ngroups::Integer)
     xnm = eltype(x) >: Missing ? skipmissing(x) : x
     breaks = Statistics.quantile(xnm, (1:ngroups-1)/ngroups)
-    _cut(x, breaks)
+    cut(x, breaks)
 end
 
-function _cut(x::AbstractArray, breaks::AbstractVector)
+function cut(x::AbstractArray, breaks::AbstractVector)
     xnm = eltype(x) >: Missing ? skipmissing(x) : x
     min_x, max_x = extrema(xnm)
     if first(breaks) > min_x
