@@ -3,20 +3,24 @@ using CSV, DataFrames, Test, Plots, Binscatters
 df = DataFrame(CSV.File(joinpath(dirname(pathof(Binscatters)), "../dataset/Cigar.csv")))
 
 
-
+# bin
 out = Binscatters.bin(df, @formula(Sales ~ Price))
 @test issorted(out.Price)
 @test minimum(out.Price) >= minimum(df.Price)
 @test maximum(out.Price) <= maximum(df.Price)
-#Binscatters.bin(df, @formula(Sales ~ Price), weights = :w)
-#@test minimum(out.Price) >= minimum(df.Price)
-#@test maximum(out.Price) <= maximum(df.Price)
+Binscatters.bin(df, @formula(Sales ~ Price), weights = :Pop)
+@test minimum(out.Price) >= minimum(df.Price)
+@test maximum(out.Price) <= maximum(df.Price)
 Binscatters.bin(df, @formula(Sales ~ Price), 10)
 Binscatters.bin(df, @formula(Sales ~ Price + NDI))
 Binscatters.bin(df, @formula(Sales ~ Price + fe(State)))
 Binscatters.bin(df, @formula(Sales + NDI ~ Price))
-
+df.Price_missing = ifelse.(df.Price .>= 30, df.Price, missing)
+Binscatters.bin(df, @formula(Sales ~ Price_missing))
 Binscatters.bin(groupby(df, :State), @formula(Sales ~ Price))
+
+
+
 
 binscatter(df, @formula(Sales ~ Price))
 binscatter(df, @formula(Sales ~ Price), seriestype = :scatterpath)

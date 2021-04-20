@@ -7,28 +7,6 @@ using RecipesBase
 
 include("utils.jl")
 
-@recipe function f(::Type{Val{:linearfit}}, x, y, z)
-    seriestype := :scatter
-    @series begin
-        x := x
-        y := y
-        seriestype := :scatter
-        ()
-    end
-    X = hcat(ones(length(x)), x)
-    yhat = X * (X'X \ X'y)
-    @series begin
-        seriestype := :path
-        label := ""
-        primary := false
-        x := x
-        y := yhat
-        ()
-    end
-    primary := false
-    ()
-end
-
 
 """
     binscatter(df::Union{DataFrame, GroupedDataFrame}, f::FormulaTerm, n::Integer = 20; 
@@ -44,7 +22,7 @@ Outputs a binned scatterplot
 
 ### Keyword arguments
 * `weights`: A symbol for weights
-* `seriestype`:  `:scatter` (the default) plots bins, `:scatterpath` adds a line to connect the bins, `:linearfit` adds a regression line. 
+* `seriestype`:  `:scatter` (the default) plots bins, `:scatterpath` adds a line to connect the bins, `:linearfit` adds a regression line (requires Plots 1.12)
 * `kwargs...`: Additional attributes for [`plot`](@ref). 
 
 
@@ -123,8 +101,6 @@ binscatter!(args...; kwargs...) = RecipesBase.plot!(Binscatter(args); kwargs...)
 end
 
 
-
-# scatterpath is defined at https://github.com/JuliaPlots/Plots.jl/blob/master/src/recipes.jl#L164
 
 function bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm), n::Integer = 20; 
             weights::Union{Symbol, Nothing} = nothing)

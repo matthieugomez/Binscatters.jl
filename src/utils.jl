@@ -17,7 +17,6 @@ end
 
 
 # simplified version of CategoricalArrays' cut
-
 function _cut(x::AbstractArray, ngroups::Integer)
     xnm = eltype(x) >: Missing ? skipmissing(x) : x
     breaks = Statistics.quantile(xnm, (1:ngroups-1)/ngroups)
