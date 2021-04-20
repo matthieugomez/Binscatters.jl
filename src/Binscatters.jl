@@ -100,28 +100,6 @@ binscatter!(args...; kwargs...) = RecipesBase.plot!(Binscatter(args); kwargs...)
     end
 end
 
-
-
-function bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm), n::Integer = 20; 
-            weights::Union{Symbol, Nothing} = nothing)
-    df = partial_out(df, _shift(f); weights = weights, align = false, add_mean = true)[1]
-    cols = names(df)
-    df.__cut = _cut(df[!, end], n)
-    df = groupby(df, :__cut, sort = true)
-    out = combine(df, cols .=> mean .=> cols; keepkeys = false)
-    return out
-end
-
-function bin(df::GroupedDataFrame, @nospecialize(f::FormulaTerm), n::Integer = 20; 
-            weights::Union{Symbol, Nothing} = nothing)
-    combine(d -> bin(d, f, n; weights = weights), df; ungroup = false)
-end
-
-function bin(df, @nospecialize(f::FormulaTerm), n::Integer = 20; 
-            weights::Union{Symbol, Nothing} = nothing)
-    bin(DataFrame(df), f, n; weights = weights)
-end
-
 export @formula, fe, binscatter, binscatter!
 
 end

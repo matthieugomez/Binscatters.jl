@@ -1,19 +1,22 @@
-#transform lhs ~ x + rhs to lhs + x ~ rhs
-function _shift(@nospecialize(formula::FormulaTerm))
-    lhs = formula.lhs
-    rhs = formula.rhs
-    if !(lhs isa Tuple)
-        lhs = (lhs,)
-    end
-    if !(rhs isa Tuple)
-        rhs = (rhs,)
-    end
-    i = findfirst(x -> x isa Term, rhs)
-    FormulaTerm(tuple(lhs..., rhs[i]), Tuple(term for term in rhs if term != rhs[i]))
+function bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm), n::Integer = 20; 
+            weights::Union{Symbol, Nothing} = nothing)
+    df = partial_out(df, _shift(f); weights = weights, align = false, add_mean = true)[1]
+    cols = names(df)
+    df.__cut = _cut(df[!, end], n)
+    df = groupby(df, :__cut, sort = true)
+    out = combine(df, cols .=> mean .=> cols; keepkeys = false)
+    return out
 end
 
+function bin(df::GroupedDataFrame, @nospecialize(f::FormulaTerm), n::Integer = 20; 
+            weights::Union{Symbol, Nothing} = nothing)
+    combine(d -> bin(d, f, n; weights = weights), df; ungroup = false)
+end
 
-
+function bin(df, @nospecialize(f::FormulaTerm), n::Integer = 20; 
+            weights::Union{Symbol, Nothing} = nothing)
+    bin(DataFrame(df), f, n; weights = weights)
+end
 
 
 # simplified version of CategoricalArrays' cut
@@ -50,4 +53,20 @@ function fill_refs!(refs::AbstractArray, X::AbstractArray, breaks::AbstractVecto
         end
     end
 end
+
+
+#transform lhs ~ x + rhs to lhs + x ~ rhs
+function _shift(@nospecialize(formula::FormulaTerm))
+    lhs = formula.lhs
+    rhs = formula.rhs
+    if !(lhs isa Tuple)
+        lhs = (lhs,)
+    end
+    if !(rhs isa Tuple)
+        rhs = (rhs,)
+    end
+    i = findfirst(x -> x isa Term, rhs)
+    FormulaTerm(tuple(lhs..., rhs[i]), Tuple(term for term in rhs if term != rhs[i]))
+end
+
 
