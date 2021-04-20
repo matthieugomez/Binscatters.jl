@@ -22,8 +22,7 @@ end
 # simplified version of CategoricalArrays' cut
 function cut(x::AbstractArray, ngroups::Integer)
     xnm = eltype(x) >: Missing ? skipmissing(x) : x
-    breaks = Statistics.quantile(xnm, (1:ngroups-1)/ngroups)
-    cut(x, breaks)
+    cut(x, Statistics.quantile(xnm, (1:ngroups-1)/ngroups))
 end
 
 function cut(x::AbstractArray, breaks::AbstractVector)
@@ -37,7 +36,6 @@ function cut(x::AbstractArray, breaks::AbstractVector)
     end
     refs = Array{UInt32}(undef, size(x))
     fill_refs!(refs, x, breaks)
-    return refs
 end
 
 function fill_refs!(refs::AbstractArray, X::AbstractArray, breaks::AbstractVector)
@@ -52,6 +50,7 @@ function fill_refs!(refs::AbstractArray, X::AbstractArray, breaks::AbstractVecto
             refs[i] = searchsortedlast(breaks, x)
         end
     end
+    return refs
 end
 
 
