@@ -1,4 +1,5 @@
 [![Build status](https://github.com/matthieugomez/Binscatters.jl/workflows/CI/badge.svg)](https://github.com/matthieugomez/Binscatters.jl/actions)
+[![Coverage Status](http://codecov.io/github/matthieugomez/Binscatters.jl/coverage.svg?branch=main)](http://codecov.io/github/matthieugomez/Binscatters.jl/?branch=main)
 
 This package defines a [`Plots`](https://github.com/JuliaPlots/Plots.jl) recipe to implement the Stata command [`binscatter`](https://github.com/michaelstepner/binscatter) in Julia.
 
