@@ -34,6 +34,9 @@ binscatter(df, @formula(Sales ~ Price), seriestype = :scatterpath)
 binscatter(df, @formula(Sales ~ Price), seriestype = :linearfit)
 
 
+binscatter(df, @formula(log(Sales) ~ log(Price)))
+
+
 binscatter(df, @formula(Sales + NDI ~ Price))
 binscatter(df, @formula(Sales + NDI ~ Price), seriestype = :scatterpath)
 binscatter(df, @formula(Sales + NDI ~ Price), seriestype = :linearfit)
