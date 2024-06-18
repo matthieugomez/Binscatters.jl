@@ -1,5 +1,6 @@
 module Binscatters
 using Statistics
+using StatsBase
 using DataFrames
 using FixedEffectModels
 using RecipesBase

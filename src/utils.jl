@@ -1,12 +1,32 @@
-function bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm), n::Integer = 20; 
-            weights::Union{Symbol, Nothing} = nothing)
-    df = partial_out(df, _shift(f); weights = weights, align = false, add_mean = true)[1]
-    cols = names(df)
-    df.__cut = cut(df[!, end], n)
-    df = groupby(df, :__cut, sort = true)
-    out = combine(df, cols .=> mean .=> cols; keepkeys = false)
-    return out
+function bin(df::AbstractDataFrame, n::Integer = 20; by::Symbol, weights::Union{Symbol, Nothing} = nothing)
+    df = dropmissing(df)
+    cols = propertynames(df)
+    if weights === nothing
+        df.__cut = cut(df[!, by], n)
+        df = groupby(df, :__cut, sort = true)
+        return combine(df, (col => mean => col for col in cols)...; keepkeys = false)
+    else
+        df.__cut = cut(df[!, by], n, df[!, weights])
+        df = groupby(df, :__cut, sort = true)
+        cols = setdiff(cols, [weights])
+        return combine(df, ([col, weights] => ((x, w) -> mean(x, Weights(w))) => col for col in cols)...; keepkeys = false)
+    end
 end
+
+#transform lhs ~ x + rhs to lhs + x ~ rhs
+function _shift(@nospecialize(formula::FormulaTerm))
+    lhs = formula.lhs
+    rhs = formula.rhs
+    if !(lhs isa Tuple)
+        lhs = (lhs,)
+    end
+    if !(rhs isa Tuple)
+        rhs = (rhs,)
+    end
+    i = findfirst(x -> !(x isa ConstantTerm), rhs)
+    FormulaTerm(tuple(lhs..., rhs[i]), Tuple(term for term in rhs if term != rhs[i]))
+end
+
 
 function bin(df::GroupedDataFrame, @nospecialize(f::FormulaTerm), n::Integer = 20; 
             weights::Union{Symbol, Nothing} = nothing)
@@ -18,16 +38,29 @@ function bin(df, @nospecialize(f::FormulaTerm), n::Integer = 20;
     bin(DataFrame(df), f, n; weights = weights)
 end
 
-
-# simplified version of CategoricalArrays' cut
-function cut(x::AbstractArray, ngroups::Integer)
-    xnm = eltype(x) >: Missing ? skipmissing(x) : x
-    cut(x, Statistics.quantile(xnm, (1:ngroups-1)/ngroups))
+function bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm), n::Integer = 20; 
+            weights::Union{Symbol, Nothing} = nothing)
+    df2 = partial_out(df, _shift(f); weights = weights, align = true, add_mean = true)[1]
+    by = propertynames(df2)[end]
+    if weights !== nothing
+        df2[!, weights] = df[!, weights]
+    end
+    bin(df2, n; by = by, weights = weights)
 end
 
+
+# simplified version of CategoricalArrays' cut which also includes weights but only operates on non missing
+function cut(x::AbstractArray, ngroups::Integer)
+    cut(x, Statistics.quantile(x, (1:ngroups-1)/ngroups))
+end
+
+function cut(x::AbstractArray, ngroups::Integer, weights::AbstractArray)
+    cut(x, StatsBase.quantile(x, Weights(weights), (1:ngroups-1)/ngroups))
+end
+
+
 function cut(x::AbstractArray, breaks::AbstractVector)
-    xnm = eltype(x) >: Missing ? skipmissing(x) : x
-    min_x, max_x = extrema(xnm)
+    min_x, max_x = extrema(x)
     if first(breaks) > min_x
         breaks = [min_x; breaks]
     end
@@ -54,18 +87,6 @@ function fill_refs!(refs::AbstractArray, X::AbstractArray, breaks::AbstractVecto
 end
 
 
-#transform lhs ~ x + rhs to lhs + x ~ rhs
-function _shift(@nospecialize(formula::FormulaTerm))
-    lhs = formula.lhs
-    rhs = formula.rhs
-    if !(lhs isa Tuple)
-        lhs = (lhs,)
-    end
-    if !(rhs isa Tuple)
-        rhs = (rhs,)
-    end
-    i = findfirst(x -> !(x isa ConstantTerm), rhs)
-    FormulaTerm(tuple(lhs..., rhs[i]), Tuple(term for term in rhs if term != rhs[i]))
-end
+
 
 
