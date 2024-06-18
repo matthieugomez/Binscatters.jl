@@ -1,17 +1,22 @@
 function bin(df::AbstractDataFrame, n::Integer = 20; by::Symbol, weights::Union{Symbol, Nothing} = nothing)
-    df = dropmissing(df)
-    cols = propertynames(df)
     if weights === nothing
+        cols = propertynames(df)
+        esample = .!ismissing.(df[!, by])
+        df = df[esample, :]
         df.__cut = cut(df[!, by], n)
         df = groupby(df, :__cut, sort = true)
-        return combine(df, (col => mean => col for col in cols)...; keepkeys = false)
+        return combine(df, (col => mean ∘ skipmissing => col for col in cols)...; keepkeys = false)
     else
-        df.__cut = cut(df[!, by], n, df[!, weights])
+        cols = propertynames(df)
+        esample = .!ismissing.(df[!, by]) .& .!ismissing.(df[!, weights])
+        df = df[esample, :]
+        df.__cut = cut(df[!, by], n, Weights(df[!, weights]))
         df = groupby(df, :__cut, sort = true)
         cols = setdiff(cols, [weights])
-        return combine(df, ([col, weights] => ((x, w) -> mean(x, Weights(w))) => col for col in cols)...; keepkeys = false)
+        return combine(df, ([col, weights] => ((x, w) -> mean(collect(skipmissing(x)), Weights(w))) => col for col in cols)...; keepkeys = false)
     end
 end
+
 
 #transform lhs ~ x + rhs to lhs + x ~ rhs
 function _shift(@nospecialize(formula::FormulaTerm))
@@ -49,13 +54,13 @@ function bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm), n::Integer = 
 end
 
 
-# simplified version of CategoricalArrays' cut which also includes weights but only operates on non missing
+# simplified version of CategoricalArrays' cut which also includes weights but does not handle missings
 function cut(x::AbstractArray, ngroups::Integer)
     cut(x, Statistics.quantile(x, (1:ngroups-1)/ngroups))
 end
 
-function cut(x::AbstractArray, ngroups::Integer, weights::AbstractArray)
-    cut(x, StatsBase.quantile(x, Weights(weights), (1:ngroups-1)/ngroups))
+function cut(x::AbstractArray, ngroups::Integer, weights::AbstractWeights)
+    cut(x, StatsBase.quantile(x, weights, (1:ngroups-1)/ngroups))
 end
 
 
