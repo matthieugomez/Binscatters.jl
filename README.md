@@ -6,6 +6,7 @@ This package defines a [`Plots`](https://github.com/JuliaPlots/Plots.jl) recipe 
 ## Syntax
 
 ```julia
+using DataFrames, Plots, Binscatters
 binscatter(df::Union{DataFrame, GroupedDataFrame}, f::FormulaTerm, n = 20; 
            weights::Union{Symbol, Nothing} = nothing, seriestype::Symbol = :scatter, kwargs...)
 ```
@@ -26,7 +27,7 @@ binscatter(df::Union{DataFrame, GroupedDataFrame}, f::FormulaTerm, n = 20;
 
 ## Examples
 ```julia
-using DataFrames, RDatasets, Plots, Binscatters
+using DataFrames, Plots, Binscatters, RDatasets
 df = dataset("datasets", "iris")
 ```
 
