@@ -1,16 +1,16 @@
-function bin(df::AbstractDataFrame, n::Integer = 20; by::Symbol, weights::Union{Symbol, Nothing} = nothing)
+function bin(df::AbstractDataFrame, xvar::Symbol, n::Integer = 20; weights::Union{Symbol, Nothing} = nothing)
     if weights === nothing
         cols = propertynames(df)
-        esample = .!ismissing.(df[!, by])
+        esample = .!ismissing.(df[!, xvar])
         df = df[esample, :]
-        df.__cut = cut(df[!, by], n)
+        df.__cut = cut(df[!, xvar], n)
         df = groupby(df, :__cut, sort = true)
         return combine(df, (col => mean ∘ skipmissing => col for col in cols)...; keepkeys = false)
     else
         cols = propertynames(df)
-        esample = .!ismissing.(df[!, by]) .& .!ismissing.(df[!, weights])
+        esample = .!ismissing.(df[!, xvar]) .& .!ismissing.(df[!, weights])
         df = df[esample, :]
-        df.__cut = cut(df[!, by], n, Weights(df[!, weights]))
+        df.__cut = cut(df[!, xvar], n, Weights(df[!, weights]))
         df = groupby(df, :__cut, sort = true)
         cols = setdiff(cols, [weights])
         return combine(df, ([col, weights] => ((x, w) -> mean(collect(skipmissing(x)), Weights(w))) => col for col in cols)...; keepkeys = false)
@@ -18,20 +18,16 @@ function bin(df::AbstractDataFrame, n::Integer = 20; by::Symbol, weights::Union{
 end
 
 
-#transform lhs ~ x + rhs to lhs + x ~ rhs
-function _shift(@nospecialize(formula::FormulaTerm))
-    lhs = formula.lhs
-    rhs = formula.rhs
-    if !(lhs isa Tuple)
-        lhs = (lhs,)
+function bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm), n::Integer = 20; 
+            weights::Union{Symbol, Nothing} = nothing)
+    f_shifted = _shift(f)
+    df2 = partial_out(df, f_shifted; weights = weights, align = true, add_mean = true)[1]
+    xvar = propertynames(df2)[end]
+    if weights !== nothing
+        df2[!, weights] = df[!, weights]
     end
-    if !(rhs isa Tuple)
-        rhs = (rhs,)
-    end
-    i = findfirst(x -> !(x isa ConstantTerm), rhs)
-    FormulaTerm(tuple(lhs..., rhs[i]), Tuple(term for term in rhs if term != rhs[i]))
+    bin(df2, xvar, n; weights = weights)
 end
-
 
 function bin(df::GroupedDataFrame, @nospecialize(f::FormulaTerm), n::Integer = 20; 
             weights::Union{Symbol, Nothing} = nothing)
@@ -43,15 +39,7 @@ function bin(df, @nospecialize(f::FormulaTerm), n::Integer = 20;
     bin(DataFrame(df), f, n; weights = weights)
 end
 
-function bin(df::AbstractDataFrame, @nospecialize(f::FormulaTerm), n::Integer = 20; 
-            weights::Union{Symbol, Nothing} = nothing)
-    df2 = partial_out(df, _shift(f); weights = weights, align = true, add_mean = true)[1]
-    by = propertynames(df2)[end]
-    if weights !== nothing
-        df2[!, weights] = df[!, weights]
-    end
-    bin(df2, n; by = by, weights = weights)
-end
+
 
 
 # simplified version of CategoricalArrays' cut which also includes weights but does not handle missings
@@ -92,6 +80,18 @@ function fill_refs!(refs::AbstractArray, X::AbstractArray, breaks::AbstractVecto
 end
 
 
-
+#transform lhs ~ x + rhs to lhs + x ~ rhs
+function _shift(@nospecialize(formula::FormulaTerm))
+    lhs = formula.lhs
+    rhs = formula.rhs
+    if !(lhs isa Tuple)
+        lhs = (lhs,)
+    end
+    if !(rhs isa Tuple)
+        rhs = (rhs,)
+    end
+    i = findfirst(x -> !(x isa ConstantTerm), rhs)
+    FormulaTerm(tuple(lhs..., rhs[i]), Tuple(term for term in rhs if term != rhs[i]))
+end
 
 
