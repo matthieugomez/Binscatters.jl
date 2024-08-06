@@ -101,6 +101,6 @@ binscatter!(args...; kwargs...) = RecipesBase.plot!(Binscatter(args); kwargs...)
     end
 end
 
-export @formula, fe, binscatter, binscatter!
+export @formula, fe, binscatter, binscatter!, Binscatter
 
 end
