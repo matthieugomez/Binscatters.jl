@@ -59,6 +59,7 @@ mutable struct Binscatter
 end
 binscatter(args...; kwargs...) = RecipesBase.plot(Binscatter(args); kwargs...)
 binscatter!(args...; kwargs...) = RecipesBase.plot!(Binscatter(args); kwargs...)
+binscatter!(p::AbstractPlot, args...; kwargs...) = RecipesBase.plot!(p, Binscatter(args); kwargs...)
 
 # User recipe
 @recipe function f(bs::Binscatter; weights = nothing)
