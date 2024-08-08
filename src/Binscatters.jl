@@ -54,14 +54,10 @@ binscatter(df, @formula(SepalLength ~ SepalWidth), seriestype = :scatterpath, li
 """
 binscatter
 
-mutable struct Binscatter
-    args
-end
-binscatter(args...; kwargs...) = RecipesBase.plot(Binscatter(args); kwargs...)
-binscatter!(args...; kwargs...) = RecipesBase.plot!(Binscatter(args); kwargs...)
-binscatter!(p::AbstractPlot, args...; kwargs...) = RecipesBase.plot!(p, Binscatter(args); kwargs...)
 
 # User recipe
+@userplot Binscatter
+
 @recipe function f(bs::Binscatter; weights = nothing)
     df = bin(bs.args...; weights = weights)
     if df isa DataFrame
