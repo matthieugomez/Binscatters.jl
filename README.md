@@ -17,7 +17,7 @@ binscatter(df::Union{DataFrame, GroupedDataFrame}, f::FormulaTerm, n = 20;
 * `n`: Number of bins (default to 20).
 
 ### Keyword arguments
-* `weights`: A symbol for weights
+* `weights`: A symbol indicating a variable to for weights
 * `seriestype`:
 	- `:scatter` (default) only plots bins
 	- `:linearfit` plots bins with a regression line

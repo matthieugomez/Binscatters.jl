@@ -22,7 +22,7 @@ Outputs a binned scatterplot
 * `n`: Number of bins (default to 20).
 
 ### Keyword arguments
-* `weights`: A symbol for weights
+* `weights`: A symbol indicating a variable to use as weights 
 * `seriestype`:  `:scatter` (the default) plots bins, `:scatterpath` adds a line to connect the bins, `:linearfit` adds a regression line (requires Plots 1.12)
 * `kwargs...`: Additional attributes for [`plot`](@ref). 
 
@@ -53,7 +53,6 @@ binscatter(df, @formula(SepalLength ~ SepalWidth), seriestype = :scatterpath, li
 ```
 """
 binscatter
-
 
 # User recipe
 @userplot Binscatter
