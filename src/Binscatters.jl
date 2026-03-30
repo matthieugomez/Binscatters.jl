@@ -97,6 +97,6 @@ binscatter
     end
 end
 
-export @formula, fe, binscatter, binscatter!, Binscatter
+export @formula, fe, bin, binscatter, binscatter!, Binscatter
 
 end
