@@ -20,7 +20,7 @@ binscatter(df, @formula(SepalLength ~ SepalWidth))
 # With a regression line
 binscatter(df, @formula(SepalLength ~ SepalWidth), seriestype = :linearfit)
 ```
-![binscatter](http://www.matthieugomez.com/files/p1.png)
+![binscatter](images/p1.png)
 
 ## Residualizing
 
@@ -28,13 +28,13 @@ Sepal length appears to be a decreasing function of sepal width in the `iris` da
 ```julia
 binscatter(groupby(df, :Species), @formula(SepalLength ~ SepalWidth), seriestype = :linearfit)
 ```
-![binscatter](http://www.matthieugomez.com/files/p2.png)
+![binscatter](images/p2.png)
 
 When there are many groups, a better approach is to partial out the group fixed effects:
 ```julia
 binscatter(df, @formula(SepalLength ~ SepalWidth + fe(Species)), seriestype = :linearfit)
 ```
-![binscatter](http://www.matthieugomez.com/files/p3.png)
+![binscatter](images/p3.png)
 
 You can also residualize with respect to continuous controls:
 ```julia
