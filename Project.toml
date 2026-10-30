@@ -1,7 +1,7 @@
 name = "Binscatters"
 uuid = "deae81f5-4416-4700-a781-f7a18782af9b"
 authors = ["matthieugomez <gomez.matthieu@gmail.com>"]
-version = "1.0.0"
+version = "1.0.1"
 
 [deps]
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
@@ -13,7 +13,7 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
 DataFrames = "1"
-FixedEffectModels = "1.1"
+FixedEffectModels = "1.1, 2"
 RecipesBase = "1"
 StatsBase = "0.33, 0.34"
 
